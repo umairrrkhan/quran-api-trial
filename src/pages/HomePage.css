@@ -1,0 +1,65 @@
+/* src/pages/HomePage.css */
+.home-page {
+  position: relative;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Scroll to Footer Button */
+.scroll-to-footer {
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  width: 56px;
+  height: 56px;
+  background: var(--primary-red);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 4px 16px rgba(185, 28, 28, 0.3);
+  transition: all 0.3s ease;
+  z-index: 1000;
+  opacity: 0.8;
+}
+
+.scroll-to-footer:hover {
+  background: var(--primary-red-dark);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(185, 28, 28, 0.4);
+  opacity: 1;
+}
+
+.scroll-to-footer:active {
+  transform: translateY(-1px);
+}
+
+.scroll-to-footer svg {
+  transition: transform 0.3s ease;
+}
+
+.scroll-to-footer:hover svg {
+  transform: translateY(2px);
+}
+
+/* Hide on mobile when not needed */
+@media (max-width: 768px) {
+  .scroll-to-footer {
+    bottom: 20px;
+    right: 20px;
+    width: 48px;
+    height: 48px;
+  }
+}
+
+@media (max-width: 480px) {
+  .scroll-to-footer {
+    bottom: 15px;
+    right: 15px;
+    width: 44px;
+    height: 44px;
+  }
+}
