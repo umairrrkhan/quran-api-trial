@@ -10,6 +10,6 @@
     }
   ],
   "installCommand": "npm install",
-  "buildCommand": "npm run build",
+  "buildCommand": "chmod +x node_modules/.bin/* && npm run build",
   "outputDirectory": "build"
 }
