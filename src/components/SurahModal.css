@@ -1,0 +1,264 @@
+.surah-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 20px;
+  overflow-y: auto;
+}
+
+.surah-modal {
+  background: white;
+  border: 1px solid var(--border-glass);
+  border-radius: 20px;
+  max-width: 800px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
+}
+
+.surah-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 36px 40px 24px;
+  border-bottom: 1px solid var(--border-glass);
+  position: sticky;
+  top: 0;
+  background: white;
+  z-index: 10;
+}
+
+.surah-modal-title h2 {
+  font-size: 1.8rem;
+  margin-bottom: 6px;
+}
+
+.surah-modal-arabic {
+  font-family: 'Amiri Quran', serif;
+  font-size: 1.4rem;
+  color: var(--gold-dark);
+  margin: 0 0 6px 0;
+  direction: rtl;
+  text-align: right;
+}
+
+.surah-modal-translation {
+  font-size: 1rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 12px;
+}
+
+.surah-modal-meta {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.surah-modal-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
+.mark-complete-btn {
+  padding: 10px 24px;
+  border-radius: 50px;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold-dark);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.mark-complete-btn:hover {
+  background: var(--gradient-gold);
+  color: white;
+  border-color: transparent;
+}
+
+.mark-complete-btn.completed {
+  background: #F0FDF4;
+  border-color: var(--success);
+  color: var(--success);
+  cursor: default;
+}
+
+.close-modal {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-glass);
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+}
+
+.close-modal:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+.verses-container {
+  padding: 24px 40px 40px;
+}
+
+.verse-item {
+  margin-bottom: 28px;
+  padding: 20px;
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  border: 1px solid var(--border-glass);
+  transition: border-color 0.3s ease;
+}
+
+.verse-item:hover {
+  border-color: var(--border-glass-hover);
+}
+
+.verse-header {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.verse-number {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--gold-dark);
+  background: #FFFBEB;
+  padding: 4px 12px;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+.verse-arabic {
+  font-family: 'Amiri Quran', serif;
+  font-size: 1.3rem;
+  color: var(--text-primary);
+  direction: rtl;
+  text-align: right;
+  line-height: 2;
+  margin-bottom: 8px;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid var(--border-glass);
+}
+
+.verse-translation {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  padding: 16px;
+  background: white;
+  border-radius: 8px;
+  border-left: 3px solid var(--gold);
+  margin-bottom: 8px;
+}
+
+.verse-explain-btn {
+  padding: 8px 18px;
+  border-radius: 50px;
+  border: 1px solid var(--gold);
+  background: transparent;
+  color: var(--gold-dark);
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.verse-explain-btn:hover {
+  background: var(--gold-glow);
+}
+
+.explain-loading { opacity: 0.6; }
+
+.verse-explanation {
+  margin-top: 12px;
+  padding: 16px;
+  background: #FFFBEB;
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.explanation-themes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.theme-tag {
+  padding: 4px 12px;
+  background: white;
+  border: 1px solid rgba(212, 175, 55, 0.15);
+  border-radius: 50px;
+  font-size: 0.78rem;
+  color: var(--gold-dark);
+}
+
+.explanation-context {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  line-height: 1.6;
+}
+
+.explanation-context strong {
+  color: var(--gold-dark);
+}
+
+.explanation-text {
+  font-size: 0.95rem;
+  color: var(--text-primary);
+  line-height: 1.7;
+}
+
+.partial-content-note {
+  text-align: center;
+  padding: 16px;
+  background: #FFFBEB;
+  border: 1px solid rgba(212, 175, 55, 0.12);
+  border-radius: 12px;
+  margin-top: 20px;
+}
+
+.partial-content-note p {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+  .surah-modal-overlay { padding: 10px; }
+  .surah-modal { max-height: 95vh; border-radius: 16px; }
+  .surah-modal-header { padding: 24px 20px 16px; flex-direction: column; gap: 16px; }
+  .surah-modal-title h2 { font-size: 1.4rem; }
+  .surah-modal-actions { width: 100%; justify-content: flex-end; }
+  .verses-container { padding: 16px 20px 24px; }
+  .verse-item { padding: 16px; }
+  .verse-translation { font-size: 0.95rem; padding: 12px; }
+}

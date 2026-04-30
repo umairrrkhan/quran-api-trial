@@ -1,4 +1,3 @@
-// src/pages/HomePage.tsx
 import React from 'react';
 import HeroSection from '../components/sections/HeroSection';
 import SearchSection from '../components/sections/SearchSection';
@@ -6,9 +5,8 @@ import ChaptersSection from '../components/sections/ChaptersSection';
 import './HomePage.css';
 
 const HomePage: React.FC = () => {
-  const scrollToFooter = () => {
-    const footer = document.querySelector('.simple-footer');
-    footer?.scrollIntoView({ behavior: 'smooth' });
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   return (
@@ -16,16 +14,10 @@ const HomePage: React.FC = () => {
       <HeroSection />
       <SearchSection />
       <ChaptersSection />
-      
-      {/* Down Arrow Button */}
-      <button 
-        className="scroll-to-footer"
-        onClick={scrollToFooter}
-        aria-label="Scroll to footer"
-      >
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M7 13l5 5 5-5"/>
-          <path d="M7 6l5 5 5-5"/>
+
+      <button className="scroll-top-btn" onClick={scrollToTop} aria-label="Scroll to top">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+          <path d="M18 15l-6-6-6 6" />
         </svg>
       </button>
     </div>

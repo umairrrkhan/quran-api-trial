@@ -1,99 +1,104 @@
-// src/components/sections/HeroSection.tsx
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { staggerContainer, fadeInUp, smoothFloat } from '../../hooks/useAnimations';
+import { useNavigate } from 'react-router-dom';
+import {
+  staggerContainer,
+  fadeInUp,
+} from '../../hooks/useAnimations';
 import './HeroSection.css';
 
-interface HeroSectionProps {
-  children?: React.ReactNode;
-}
-
-const HeroSection: React.FC<HeroSectionProps> = () => {
-  const rotatingWords = ['Guidance', 'Wisdom', 'Peace', 'Understanding', 'Comfort'];
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+const HeroSection: React.FC = () => {
+  const navigate = useNavigate();
+  const words = ['Guidance', 'Wisdom', 'Peace', 'Understanding', 'Comfort'];
+  const [index, setIndex] = useState(0);
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentWordIndex((prevIndex) => (prevIndex + 1) % rotatingWords.length);
-    }, 2000); // Change word every 2 seconds
-
+    const interval = setInterval(
+      () => setIndex((prev) => (prev + 1) % words.length),
+      2200
+    );
     return () => clearInterval(interval);
   }, []);
 
   return (
     <section className="hero-section">
+      <div className="hero-bg-pattern" />
+      <div className="hero-glow hero-glow-1" />
+      <div className="hero-glow hero-glow-2" />
+
       <div className="container">
-        {/* Enhanced decorative background elements */}
-        <div className="hero-background-elements">
-          <motion.div 
-            className="hero-shape hero-shape-1"
-            variants={smoothFloat}
-            initial="hidden"
-            animate="visible"
-            transition={{ duration: 8, repeat: Infinity, repeatType: "reverse" }}
-          ></motion.div>
-          <motion.div 
-            className="hero-shape hero-shape-2"
-            variants={smoothFloat}
-            initial="hidden"
-            animate="visible"
-            transition={{ duration: 10, repeat: Infinity, repeatType: "reverse", delay: 1 }}
-          ></motion.div>
-          <motion.div 
-            className="hero-shape hero-shape-3"
-            variants={smoothFloat}
-            initial="hidden"
-            animate="visible"
-            transition={{ duration: 12, repeat: Infinity, repeatType: "reverse", delay: 2 }}
-          ></motion.div>
-        </div>
-        
-        <motion.div 
+        <motion.div
           className="hero-content"
           variants={staggerContainer}
           initial="hidden"
           animate="visible"
         >
-          <motion.h1 
-            className="hero-title"
-            variants={fadeInUp}
-          >
-            Not sure what to read in Quran?
-          </motion.h1>
-          
-          <motion.p 
-            className="hero-subtitle"
-            variants={fadeInUp}
-            transition={{ delay: 0.2 }}
-          >
-            Discover meaningful <span className="rotating-word red-accent">{rotatingWords[currentWordIndex]}</span>
-          </motion.p>
-          
-          <motion.div
-            className="hero-description"
-            variants={fadeInUp}
-            transition={{ delay: 0.4 }}
-          >
-            <p>
-              Our platform helps those who are new to the Quran or unsure where to start. 
-              Explore carefully selected verses, thematic collections, and guided readings.
-            </p>
+          <motion.div className="hero-badge" variants={fadeInUp}>
+            <span className="badge-dot" />
+            Quran Reading Companion
           </motion.div>
-          
-          <motion.div
-            className="hero-buttons"
-            variants={fadeInUp}
-            transition={{ delay: 0.6 }}
-          >
-            <button 
+
+          <motion.h1 className="hero-title" variants={fadeInUp}>
+            Begin Your{' '}
+            <span className="hero-gold-text">Quran Journey</span>
+            <br />
+            Today
+          </motion.h1>
+
+          <motion.p className="hero-subtitle" variants={fadeInUp}>
+            Discover{' '}
+            <span className="rotating-word">{words[index]}</span>
+          </motion.p>
+
+          <motion.p className="hero-description" variants={fadeInUp}>
+            Your personal companion for reading, understanding, and tracking the
+            Holy Quran. Let every verse bring you closer.
+          </motion.p>
+
+          <motion.div className="hero-buttons" variants={fadeInUp}>
+            <button
               className="btn btn-primary"
               onClick={() => {
-                const chaptersSection = document.querySelector('.chapters-section');
-                chaptersSection?.scrollIntoView({ behavior: 'smooth' });
+                document
+                  .querySelector('.chapters-section')
+                  ?.scrollIntoView({ behavior: 'smooth' });
               }}
             >
-              Discover Verses
+              Start Reading
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+              >
+                <path d="M5 12h14M12 5l7 7-7 7" />
+              </svg>
             </button>
+            <button
+              className="btn btn-outline"
+              onClick={() => navigate('/progress')}
+            >
+              View Progress
+            </button>
+          </motion.div>
+
+          <motion.div className="hero-stats" variants={fadeInUp}>
+            <div className="stat-item">
+              <span className="stat-number">114</span>
+              <span className="stat-label">Surahs</span>
+            </div>
+            <div className="stat-divider" />
+            <div className="stat-item">
+              <span className="stat-number">6,236</span>
+              <span className="stat-label">Verses</span>
+            </div>
+            <div className="stat-divider" />
+            <div className="stat-item">
+              <span className="stat-number">AI</span>
+              <span className="stat-label">Explanations</span>
+            </div>
           </motion.div>
         </motion.div>
       </div>

@@ -1,0 +1,26 @@
+.progress-section {
+  background: var(--bg-secondary);
+}
+
+.progress-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 60px;
+  align-items: start;
+}
+
+.progress-left {
+  display: flex;
+  justify-content: center;
+  padding-top: 20px;
+}
+
+@media (max-width: 1024px) {
+  .progress-layout {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  .progress-left {
+    order: -1;
+  }
+}

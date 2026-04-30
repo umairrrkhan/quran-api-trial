@@ -1,40 +1,42 @@
-// src/components/Footer.tsx
 import React from 'react';
 import { Link } from 'react-router-dom';
-import '../styles/globals.css';
+import './Footer.css';
 
 const Footer: React.FC = () => {
   return (
-    <footer className="simple-footer">
+    <footer className="footer">
       <div className="container">
-        <div className="footer-content">
-          <div className="footer-section">
-            <h3>QuranHub</h3>
-            <p>Smart Quran guidance for modern life</p>
+        <div className="footer-grid">
+          <div className="footer-brand">
+            <h3>
+              <span className="logo-gold">Quran</span>
+              <span className="logo-dark">Hub</span>
+            </h3>
+            <p>Your intelligent companion for Quran reading, understanding, and tracking your spiritual journey.</p>
           </div>
-          
-          <div className="footer-section">
-            <h4>Developer</h4>
-            <p>Built by <span className="red-highlight">Umair Khan</span></p>
-            <p className="dev-creds">Founding Engineer | First Class Honors | Minimax Hackathon Winner</p>
-            <div className="social-links">
-              <a href="https://github.com/umairrrkhan" target="_blank" rel="noopener noreferrer">GitHub</a>
-              <a href="https://www.linkedin.com/in/umairkhannn/" target="_blank" rel="noopener noreferrer">LinkedIn</a>
-            </div>
-          </div>
-          
-          <div className="footer-section">
+
+          <div className="footer-links">
             <h4>Quick Links</h4>
-            <ul>
-              <li><Link to="/">Home</Link></li>
-              <li><Link to="/about">About</Link></li>
-            </ul>
+            <Link to="/">Home</Link>
+            <Link to="/progress">Progress</Link>
+            <Link to="/about">About</Link>
+          </div>
+
+          <div className="footer-links">
+            <h4>Connect</h4>
+            <a href="https://github.com/umairrrkhan" target="_blank" rel="noopener noreferrer">
+              GitHub
+            </a>
+            <a href="https://www.linkedin.com/in/umairkhannn/" target="_blank" rel="noopener noreferrer">
+              LinkedIn
+            </a>
           </div>
         </div>
-        
+
         <div className="footer-bottom">
           <p>
-            © {new Date().getFullYear()} QuranHub. Assessment project for Quran Team.
+            &copy; {new Date().getFullYear()} QuranHub. Built by{' '}
+            <span className="footer-highlight">Umair Khan</span>.
           </p>
         </div>
       </div>

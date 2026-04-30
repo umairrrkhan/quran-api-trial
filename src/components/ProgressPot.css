@@ -1,0 +1,90 @@
+.progress-pot-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+}
+
+.pot-ambient-glow {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  bottom: 40px;
+  background: radial-gradient(circle, rgba(212, 175, 55, 0.15) 0%, transparent 70%);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.progress-pot {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 1;
+}
+
+.pot-svg {
+  width: 160px;
+  height: 220px;
+  filter: drop-shadow(0 8px 24px rgba(212, 175, 55, 0.1));
+}
+
+.pot-complete-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 12px;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
+  letter-spacing: 1px;
+}
+
+.pot-stats {
+  text-align: center;
+  margin-top: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+
+.pot-percentage {
+  font-size: 2.4rem;
+  font-weight: 800;
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1;
+}
+
+.pot-count {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.pot-progress-track {
+  width: 120px;
+  height: 4px;
+  background: var(--heatmap-empty);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 8px;
+  transform-origin: left;
+}
+
+.pot-progress-fill {
+  height: 100%;
+  background: var(--gradient-gold);
+  border-radius: 2px;
+  transition: width 1s ease;
+}
+
+@media (max-width: 768px) {
+  .pot-svg { width: 130px; height: 180px; }
+  .pot-percentage { font-size: 2rem; }
+}
