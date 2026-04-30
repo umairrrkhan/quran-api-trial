@@ -1,5 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import ProgressJourney from '../components/ProgressJourney';
 import { useProgress } from '../context/ProgressContext';
 import './ProgressPage.css';
 
@@ -191,6 +192,23 @@ const ProgressPage: React.FC = () => {
               </div>
               <span className="pp-graph-label">Completed</span>
             </div>
+          </motion.div>
+        </div>
+      </section>
+
+      <section className="pp-tree-section">
+        <div className="container">
+          <div className="pp-divider">
+            <span className="pp-divider-icon">✦</span>
+          </div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
+            <ProgressJourney progress={progress} />
           </motion.div>
         </div>
       </section>
