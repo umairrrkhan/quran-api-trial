@@ -161,9 +161,29 @@
 }
 
 @media (max-width: 768px) {
+  .hero-section { padding: 120px 0 60px; min-height: 70vh; }
   .hero-title { font-size: 2.4rem; }
   .hero-subtitle { font-size: 1.2rem; }
-  .hero-stats { gap: 24px; }
+  .hero-stats { gap: 24px; flex-wrap: wrap; }
   .stat-number { font-size: 1.3rem; }
   .hero-buttons { flex-direction: column; align-items: center; }
+  .hero-glow-1 { width: 300px; height: 300px; }
+  .hero-glow-2 { width: 250px; height: 250px; }
+  .hero-badge { font-size: 0.78rem; padding: 6px 16px; margin-bottom: 24px; }
+  .hero-description { font-size: 1rem; }
+}
+
+@media (max-width: 480px) {
+  .hero-section { padding: 100px 0 40px; min-height: 60vh; }
+  .hero-title { font-size: 1.8rem; letter-spacing: -0.5px; }
+  .hero-subtitle { font-size: 1rem; min-height: 1.5rem; }
+  .hero-description { font-size: 0.9rem; margin-bottom: 28px; }
+  .hero-buttons { gap: 12px; }
+  .hero-buttons .btn { width: 100%; justify-content: center; padding: 12px 24px; font-size: 0.9rem; }
+  .hero-stats { gap: 16px; }
+  .stat-number { font-size: 1.1rem; }
+  .stat-label { font-size: 0.65rem; letter-spacing: 0.5px; }
+  .stat-divider { height: 30px; }
+  .hero-glow-1 { width: 200px; height: 200px; }
+  .hero-glow-2 { width: 150px; height: 150px; }
 }

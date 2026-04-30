@@ -261,4 +261,27 @@
   .verses-container { padding: 16px 20px 24px; }
   .verse-item { padding: 16px; }
   .verse-translation { font-size: 0.95rem; padding: 12px; }
+  .verse-arabic { font-size: 1.1rem; padding: 12px; }
+  .mark-complete-btn { padding: 8px 18px; font-size: 0.82rem; }
+}
+
+@media (max-width: 480px) {
+  .surah-modal-overlay { padding: 6px; }
+  .surah-modal { border-radius: 12px; }
+  .surah-modal-header { padding: 18px 14px 12px; gap: 12px; }
+  .surah-modal-title h2 { font-size: 1.15rem; }
+  .surah-modal-arabic { font-size: 1.1rem; }
+  .surah-modal-translation { font-size: 0.85rem; margin-bottom: 8px; }
+  .surah-modal-meta { gap: 8px; }
+  .verses-container { padding: 12px 14px 18px; }
+  .verse-item { padding: 12px; margin-bottom: 16px; }
+  .verse-number { font-size: 0.75rem; padding: 3px 10px; }
+  .verse-arabic { font-size: 1rem; padding: 10px; }
+  .verse-translation { font-size: 0.88rem; padding: 10px; }
+  .verse-explain-btn { padding: 6px 14px; font-size: 0.75rem; }
+  .verse-explanation { padding: 12px; }
+  .explanation-text { font-size: 0.88rem; }
+  .mark-complete-btn { padding: 6px 14px; font-size: 0.75rem; }
+  .close-modal { width: 32px; height: 32px; padding: 4px; }
+  .close-modal svg { width: 18px; height: 18px; }
 }

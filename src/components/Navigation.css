@@ -154,8 +154,19 @@
 }
 
 @media (max-width: 768px) {
-  .navbar { top: 12px; width: calc(100% - 24px); padding: 10px 0; }
+  .navbar { top: 12px; width: calc(100% - 24px); padding: 10px 0; border-radius: 30px; }
   .nav-link { display: none; }
   .navbar-center { display: none; }
   .mobile-toggle { display: block; }
+  .navbar-logo a { font-size: 1.1rem; }
+}
+
+@media (max-width: 480px) {
+  .navbar { top: 8px; width: calc(100% - 16px); padding: 8px 0; border-radius: 24px; }
+  .navbar-inner { gap: 12px; }
+  .navbar-logo a { font-size: 1rem; }
+  .mobile-toggle button { padding: 2px; }
+  .hamburger-line { width: 18px; height: 1.5px; }
+  .mobile-menu { left: 4px; right: 4px; border-radius: 12px; padding: 8px; }
+  .mobile-menu a { padding: 10px 14px; font-size: 0.95rem; }
 }

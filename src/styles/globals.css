@@ -169,4 +169,16 @@ section { padding: 100px 0; }
   section { padding: 70px 0; }
   .container { padding: 0 16px; }
   .section-header { margin-bottom: 40px; }
+  .btn { padding: 12px 24px; font-size: 0.9rem; }
+}
+
+@media (max-width: 480px) {
+  h1 { font-size: 1.7rem; }
+  h2 { font-size: 1.4rem; }
+  h3 { font-size: 1.2rem; }
+  section { padding: 50px 0; }
+  .container { padding: 0 12px; }
+  .section-header { margin-bottom: 28px; }
+  .section-subtitle { font-size: 0.95rem; }
+  .btn { padding: 10px 20px; font-size: 0.85rem; }
 }

@@ -103,7 +103,20 @@
 @media (max-width: 768px) {
   .about-page { padding: 120px 0 40px; }
   .about-header h1 { font-size: 2rem; }
+  .about-header { margin-bottom: 32px; }
   .about-main h2 { font-size: 1.5rem; }
+  .creator-title { font-size: 0.9rem; }
   .social-links-large { flex-direction: column; }
   .social-link-btn { width: 100%; justify-content: center; }
+}
+
+@media (max-width: 480px) {
+  .about-page { padding: 100px 0 30px; }
+  .about-header h1 { font-size: 1.6rem; }
+  .about-main h2 { font-size: 1.2rem; }
+  .creator-title { font-size: 0.82rem; margin-bottom: 16px; }
+  .creator-description p { font-size: 0.88rem; }
+  .connect-section { padding: 24px 20px; }
+  .connect-section h3 { font-size: 1.1rem; }
+  .social-link-btn { padding: 12px 20px; font-size: 0.85rem; }
 }
