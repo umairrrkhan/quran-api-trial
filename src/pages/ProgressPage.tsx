@@ -1,15 +1,13 @@
 import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Heatmap from '../components/Heatmap';
 import { useProgress } from '../context/ProgressContext';
 import './ProgressPage.css';
 
+const surahs = Array.from({ length: 114 }, (_, i) => i + 1);
+
 const container = {
   hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.08 },
-  },
+  show: { opacity: 1, transition: { staggerChildren: 0.03 } },
 };
 
 const item = {
@@ -18,23 +16,14 @@ const item = {
 };
 
 const ProgressPage: React.FC = () => {
-  const { progress, completedCount, recentActivity, resetProgress } = useProgress();
+  const { progress, completedCount, isSurahCompleted, resetProgress } = useProgress();
   const remaining = 114 - completedCount;
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
-  const streak = useMemo(() => {
-    let count = 0;
-    const today = new Date();
-    for (let i = 0; i < 365; i++) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      const key = d.toISOString().split('T')[0];
-      const day = recentActivity.find((a) => a.date === key);
-      if (day && day.count > 0) count++;
-      else if (i > 0) break;
-    }
-    return count;
-  }, [recentActivity]);
+  const completedSurahs = useMemo(
+    () => surahs.filter((id) => isSurahCompleted(id)),
+    [isSurahCompleted]
+  );
 
   return (
     <div className="progress-page">
@@ -60,8 +49,8 @@ const ProgressPage: React.FC = () => {
               Your <span className="pp-gold">Quran Journey</span>
             </motion.h1>
             <motion.p className="pp-sub" variants={item}>
-              Every verse you read brings light into your life.
-              Track your progress, build your streak, and celebrate each milestone.
+              Every surah you complete brings you closer. Track your progress
+              and celebrate each milestone.
             </motion.p>
           </motion.div>
         </div>
@@ -85,7 +74,7 @@ const ProgressPage: React.FC = () => {
               </div>
               <div className="pp-stat-body">
                 <span className="pp-stat-num">{completedCount}</span>
-                <span className="pp-stat-label">Surahs Read</span>
+                <span className="pp-stat-label">Surahs Completed</span>
                 <div className="pp-stat-bar">
                   <motion.div
                     className="pp-stat-fill pp-fill-green"
@@ -93,27 +82,6 @@ const ProgressPage: React.FC = () => {
                     whileInView={{ width: `${(completedCount / 114) * 100}%` }}
                     viewport={{ once: true }}
                     transition={{ duration: 1.2, delay: 0.2, ease: 'easeOut' }}
-                  />
-                </div>
-              </div>
-            </motion.div>
-
-            <motion.div className="pp-stat" variants={item}>
-              <div className="pp-stat-icon pp-stat-streak">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
-                </svg>
-              </div>
-              <div className="pp-stat-body">
-                <span className="pp-stat-num">{streak}</span>
-                <span className="pp-stat-label">Day Streak</span>
-                <div className="pp-stat-bar">
-                  <motion.div
-                    className="pp-stat-fill pp-fill-gold"
-                    initial={{ width: 0 }}
-                    whileInView={{ width: `${Math.min((streak / 30) * 100, 100)}%` }}
-                    viewport={{ once: true }}
-                    transition={{ duration: 1.2, delay: 0.3, ease: 'easeOut' }}
                   />
                 </div>
               </div>
@@ -134,7 +102,7 @@ const ProgressPage: React.FC = () => {
                     initial={{ width: 0 }}
                     whileInView={{ width: `${progress}%` }}
                     viewport={{ once: true }}
-                    transition={{ duration: 1.2, delay: 0.4, ease: 'easeOut' }}
+                    transition={{ duration: 1.2, delay: 0.3, ease: 'easeOut' }}
                   />
                 </div>
               </div>
@@ -155,7 +123,7 @@ const ProgressPage: React.FC = () => {
                     initial={{ width: 0 }}
                     whileInView={{ width: `${(remaining / 114) * 100}%` }}
                     viewport={{ once: true }}
-                    transition={{ duration: 1.2, delay: 0.5, ease: 'easeOut' }}
+                    transition={{ duration: 1.2, delay: 0.4, ease: 'easeOut' }}
                   />
                 </div>
               </div>
@@ -164,39 +132,64 @@ const ProgressPage: React.FC = () => {
         </div>
       </section>
 
-      <section className="pp-main-section">
+      <section className="pp-graph-section">
         <div className="container">
           <div className="pp-divider">
             <span className="pp-divider-icon">✦</span>
           </div>
 
           <motion.div
-            className="pp-heatmap-wrap"
+            className="pp-graph-card"
             initial={{ opacity: 0, y: 40 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.7 }}
           >
-            <div className="pp-heatmap-card">
-              <div className="pp-heatmap-card-top">
-                <div>
-                  <h3 className="pp-heatmap-title">Reading Activity</h3>
-                  <p className="pp-heatmap-desc">
-                    Your daily Quran engagement over the past year
-                  </p>
-                </div>
-                <button
-                  className="pp-reset-btn"
-                  onClick={() => setShowResetConfirm(true)}
-                  title="Reset all progress"
-                >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 4v6h6M23 20v-6h-6" />
-                    <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15" />
-                  </svg>
-                </button>
+            <div className="pp-graph-header">
+              <div>
+                <h3 className="pp-graph-title">Completion Map</h3>
+                <p className="pp-graph-desc">
+                  {completedCount} of 114 surahs completed
+                </p>
               </div>
-              <Heatmap data={recentActivity} />
+              <button
+                className="pp-reset-btn"
+                onClick={() => setShowResetConfirm(true)}
+                title="Reset all progress"
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M1 4v6h6M23 20v-6h-6" />
+                  <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15" />
+                </svg>
+              </button>
+            </div>
+
+            <div className="pp-graph-body">
+              <div className="pp-graph-grid">
+                {surahs.map((id) => {
+                  const done = completedSurahs.includes(id);
+                  return (
+                    <motion.div
+                      key={id}
+                      className={`pp-graph-cell ${done ? 'done' : ''}`}
+                      initial={{ scale: 0, opacity: 0 }}
+                      whileInView={{ scale: 1, opacity: 1 }}
+                      viewport={{ once: true }}
+                      transition={{ delay: id * 0.005, duration: 0.3 }}
+                      title={`Surah ${id}${done ? ' ✓' : ''}`}
+                    />
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="pp-graph-footer">
+              <span className="pp-graph-label">Not started</span>
+              <div className="pp-graph-legend">
+                <div className="graph-legend-cell empty" />
+                <div className="graph-legend-cell done" />
+              </div>
+              <span className="pp-graph-label">Completed</span>
             </div>
           </motion.div>
         </div>
