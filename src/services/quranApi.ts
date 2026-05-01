@@ -27,3 +27,5 @@ export async function fetchChapterDetails(chapterId: number): Promise<Chapter> {
   const data = await response.json();
   return data.chapter;
 }
+
+

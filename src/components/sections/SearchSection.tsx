@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SurahModal from '../SurahModal';
-import { fetchChapterDetails, fetchChapterVerses } from '../../services/quranApi';
+import { fetchChapters, fetchChapterDetails, fetchChapterVerses } from '../../services/quranApi';
 import type { SurahContent, Verse, Chapter } from '../../types/quran';
 import './SearchSection.css';
 
@@ -81,26 +81,51 @@ function detectEmotion(text: string): string {
   return 'guidance';
 }
 
+type SearchMode = 'emotion' | 'surah';
+
 const SearchSection: React.FC = () => {
+  const [mode, setMode] = useState<SearchMode>('emotion');
   const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [recommendations, setRecommendations] = useState<typeof emotionSurahMap['sadness']>([]);
+  const [surahResults, setSurahResults] = useState<Chapter[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [aiMessage, setAiMessage] = useState('');
   const [selectedSurah, setSelectedSurah] = useState<SurahContent | null>(null);
   const [loadingContent, setLoadingContent] = useState(false);
+  const [chapters, setChapters] = useState<Chapter[]>([]);
 
-  const handleSearch = async () => {
+  useEffect(() => {
+    fetchChapters().then(setChapters).catch(() => {});
+  }, []);
+
+  const handleSearch = () => {
     if (!query.trim()) return;
     setIsSearching(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    const emotion = detectEmotion(query);
-    const surahs = emotionSurahMap[emotion] || emotionSurahMap.guidance;
-    const greeting = aiResponses.greeting[Math.floor(Math.random() * aiResponses.greeting.length)];
-    setAiMessage(greeting);
-    setRecommendations(surahs);
-    setIsSearching(false);
     setHasSearched(true);
+
+    if (mode === 'emotion') {
+      setTimeout(() => {
+        const emotion = detectEmotion(query);
+        const surahs = emotionSurahMap[emotion] || emotionSurahMap.guidance;
+        const greeting = aiResponses.greeting[Math.floor(Math.random() * aiResponses.greeting.length)];
+        setAiMessage(greeting);
+        setRecommendations(surahs);
+        setIsSearching(false);
+      }, 1200);
+    } else {
+      setTimeout(() => {
+        const q = query.toLowerCase().trim();
+        const results = chapters.filter((c) =>
+          c.name_simple.toLowerCase().includes(q) ||
+          c.name_arabic.includes(query) ||
+          c.translated_name.name.toLowerCase().includes(q) ||
+          String(c.id).includes(q)
+        );
+        setSurahResults(results);
+        setIsSearching(false);
+      }, 300);
+    }
   };
 
   const handleSurahClick = async (surah: { id: number; name: string; name_arabic: string; translation: string }) => {
@@ -123,6 +148,27 @@ const SearchSection: React.FC = () => {
     }
   };
 
+  const handleChapterClick = async (chapter: Chapter) => {
+    if (selectedSurah?.chapter.id === chapter.id) {
+      setSelectedSurah(null);
+      return;
+    }
+    setLoadingContent(true);
+    try {
+      const verses = await fetchChapterVerses(chapter.id);
+      setSelectedSurah({ chapter, verses });
+    } catch {
+      setSelectedSurah(null);
+    } finally {
+      setLoadingContent(false);
+    }
+  };
+
+  const placeholders = {
+    emotion: "e.g. I'm feeling anxious, I need guidance, I want peace...",
+    surah: "e.g. Al-Baqarah, Yusuf, Ar-Rahman, Fatihah...",
+  };
+
   return (
     <section className="search-section">
       <div className="container">
@@ -132,10 +178,36 @@ const SearchSection: React.FC = () => {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
         >
-          <h2 className="section-title">AI-Powered Guidance</h2>
+          <h2 className="section-title">Explore the Quran</h2>
           <p className="section-subtitle">
-            Tell me how you feel, and I'll recommend the perfect Surah for your heart
+            Search for any surah by name, or describe how you feel for AI-powered recommendations
           </p>
+        </motion.div>
+
+        <motion.div
+          className="search-tabs"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <button
+            className={`search-tab ${mode === 'emotion' ? 'active' : ''}`}
+            onClick={() => { setMode('emotion'); setHasSearched(false); setQuery(''); }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+            AI Guidance
+          </button>
+          <button
+            className={`search-tab ${mode === 'surah' ? 'active' : ''}`}
+            onClick={() => { setMode('surah'); setHasSearched(false); setQuery(''); }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" /><path d="M21 21l-4.35-4.35" />
+            </svg>
+            Find Surah
+          </button>
         </motion.div>
 
         <motion.div
@@ -147,7 +219,7 @@ const SearchSection: React.FC = () => {
         >
           <input
             type="text"
-            placeholder="e.g. I'm feeling anxious, I need guidance, I want peace..."
+            placeholder={placeholders[mode]}
             className="search-input"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
@@ -159,7 +231,7 @@ const SearchSection: React.FC = () => {
             onClick={handleSearch}
             disabled={isSearching || !query.trim()}
           >
-            {isSearching ? 'Reflecting...' : 'Ask'}
+            {isSearching ? (mode === 'emotion' ? 'Reflecting...' : 'Searching...') : mode === 'emotion' ? 'Ask AI' : 'Find'}
           </button>
         </motion.div>
 
@@ -179,14 +251,14 @@ const SearchSection: React.FC = () => {
                   transition={{ duration: 1.2, repeat: Infinity, ease: 'linear' }}
                 />
               </div>
-              <p>Analyzing your emotions...</p>
+              <p>{mode === 'emotion' ? 'Analyzing your emotions...' : 'Searching surahs...'}</p>
             </motion.div>
           )}
 
-          {hasSearched && !isSearching && (
+          {hasSearched && !isSearching && mode === 'emotion' && (
             <motion.div
               className="ai-results"
-              key="results"
+              key="emotion-results"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
@@ -225,8 +297,54 @@ const SearchSection: React.FC = () => {
               </div>
             </motion.div>
           )}
+
+          {hasSearched && !isSearching && mode === 'surah' && (
+            <motion.div
+              className="keyword-results"
+              key="surah-results"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+            >
+              <p className="keyword-count">{surahResults.length} surah{surahResults.length !== 1 ? 's' : ''} found for "{query}"</p>
+              {surahResults.length === 0 ? (
+                <div className="keyword-empty">
+                  <p>No surahs found. Try a different name like "Baqarah", "Yusuf", or "Rahman".</p>
+                </div>
+              ) : (
+                <div className="recommendations-grid">
+                  {surahResults.map((chapter, i) => (
+                    <motion.div
+                      key={chapter.id}
+                      className="rec-card"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: i * 0.06 }}
+                      whileHover={{ y: -4 }}
+                      onClick={() => handleChapterClick(chapter)}
+                    >
+                      <div className="rec-card-header">
+                        <h4>{chapter.name_simple}</h4>
+                        <span className="rec-number">#{chapter.id}</span>
+                      </div>
+                      <p className="rec-arabic">{chapter.name_arabic}</p>
+                      <p className="rec-translation">{chapter.translated_name.name}</p>
+                      <div className="rec-reason">
+                        <span className="reason-label">{chapter.verses_count} verses</span> &middot; {chapter.revelation_place === 'makkah' ? 'Meccan' : 'Medinan'}
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
+
+      {loadingContent && (
+        <div className="search-loading-overlay">
+          <div className="search-loading-spinner" />
+        </div>
+      )}
 
       <AnimatePresence>
         {selectedSurah && (

@@ -9,7 +9,7 @@ interface SurahModalProps {
   surah: SurahContent;
   onClose: () => void;
   isCompleted?: boolean;
-  onMarkComplete?: () => void;
+  onMarkComplete?: (versesCount?: number) => void;
 }
 
 const VerseExplorer: React.FC<{
@@ -140,7 +140,7 @@ const SurahModal: React.FC<SurahModalProps> = ({
             {onMarkComplete && (
               <button
                 className={`mark-complete-btn ${isCompleted ? 'completed' : ''}`}
-                onClick={onMarkComplete}
+                onClick={() => onMarkComplete(chapter.verses_count)}
               >
                 {isCompleted ? 'Completed' : 'Mark as Read'}
               </button>

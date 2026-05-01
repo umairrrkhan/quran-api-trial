@@ -18,6 +18,19 @@
   z-index: 0;
 }
 
+.hero-bg-pattern::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0.04;
+  background-image:
+    radial-gradient(circle at 25% 25%, #D4AF37 1px, transparent 1px),
+    radial-gradient(circle at 75% 75%, #D4AF37 1px, transparent 1px),
+    radial-gradient(circle at 50% 50%, #D4AF37 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events: none;
+}
+
 .hero-glow {
   position: absolute;
   border-radius: 50%;

@@ -10,13 +10,15 @@ export function useReadingProgress() {
     {}
   );
 
+  const [dailyGoal, setDailyGoal] = useLocalStorage<number>('quran-daily-goal', 5);
+
   const markSurahCompleted = useCallback(
-    (surahId: number) => {
+    (surahId: number, versesCount?: number) => {
       setRecords((prev) => ({
         ...prev,
         [surahId]: {
           completedDate: new Date().toISOString(),
-          versesRead: 0,
+          versesRead: versesCount || 0,
           completed: true,
         },
       }));
@@ -40,6 +42,21 @@ export function useReadingProgress() {
     () => Math.round((completedCount / TOTAL_SURAHS) * 100),
     [completedCount]
   );
+
+  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+
+  const todayVerses = useMemo(() => {
+    return Object.values(records).reduce((sum, r) => {
+      if (r.completed && r.completedDate.split('T')[0] === todayStr) {
+        return sum + (r.versesRead || 0);
+      }
+      return sum;
+    }, 0);
+  }, [records, todayStr]);
+
+  const todayGoalMet = useMemo(() => todayVerses >= dailyGoal, [todayVerses, dailyGoal]);
+
+  const todayProgress = useMemo(() => Math.min(Math.round((todayVerses / dailyGoal) * 100), 100), [todayVerses, dailyGoal]);
 
   const recentActivity = useMemo((): DailyActivity[] => {
     const days: DailyActivity[] = [];
@@ -103,7 +120,10 @@ export function useReadingProgress() {
       if (streak > longestStreak) longestStreak = streak;
     }
 
-    return { currentStreak, longestStreak, lastReadDate };
+    const todayDone = activeDates.has(today);
+    const atRisk = !todayDone && sorted.length > 0 && sorted[0] === yesterday;
+
+    return { currentStreak, longestStreak, lastReadDate, todayDone, atRisk };
   }, [records]);
 
   const resetProgress = useCallback(() => {
@@ -116,6 +136,11 @@ export function useReadingProgress() {
     isSurahCompleted,
     completedCount,
     progress,
+    todayVerses,
+    todayGoalMet,
+    todayProgress,
+    dailyGoal,
+    setDailyGoal,
     recentActivity,
     resetProgress,
     ...streakData,

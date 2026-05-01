@@ -7,6 +7,7 @@ import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
 import AboutPage from './pages/AboutPage';
 import ProgressPage from './pages/ProgressPage';
+import BookmarksPage from './pages/BookmarksPage';
 import './styles/globals.css';
 
 const App: React.FC = () => {
@@ -21,6 +22,7 @@ const App: React.FC = () => {
               <Route path="/" element={<HomePage />} />
               <Route path="/about" element={<AboutPage />} />
               <Route path="/progress" element={<ProgressPage />} />
+              <Route path="/bookmarks" element={<BookmarksPage />} />
             </Routes>
           </main>
           <Footer />

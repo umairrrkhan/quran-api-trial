@@ -54,6 +54,9 @@ const Navigation: React.FC = () => {
           <Link to="/progress" className={`nav-link ${isActive('/progress') ? 'active' : ''}`}>
             Progress
           </Link>
+          <Link to="/bookmarks" className={`nav-link ${isActive('/bookmarks') ? 'active' : ''}`}>
+            Bookmarks
+          </Link>
           <Link to="/about" className={`nav-link ${isActive('/about') ? 'active' : ''}`}>
             About
           </Link>
@@ -93,6 +96,9 @@ const Navigation: React.FC = () => {
             </Link>
             <Link to="/progress" onClick={() => setIsMenuOpen(false)}>
               Progress
+            </Link>
+            <Link to="/bookmarks" onClick={() => setIsMenuOpen(false)}>
+              Bookmarks
             </Link>
             <Link to="/about" onClick={() => setIsMenuOpen(false)}>
               About

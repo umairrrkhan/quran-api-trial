@@ -258,7 +258,7 @@ const ChaptersSection: React.FC = () => {
             surah={selectedSurah}
             onClose={() => setSelectedSurah(null)}
             isCompleted={isSurahCompleted(selectedSurah.chapter.id)}
-            onMarkComplete={() => markSurahCompleted(selectedSurah.chapter.id)}
+            onMarkComplete={(v) => markSurahCompleted(selectedSurah.chapter.id, v)}
           />
         )}
       </AnimatePresence>

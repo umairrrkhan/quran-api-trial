@@ -4,15 +4,22 @@ import type { DailyActivity, ReadingRecord } from '../types/quran';
 
 interface ProgressContextType {
   records: Record<number, ReadingRecord>;
-  markSurahCompleted: (surahId: number) => void;
+  markSurahCompleted: (surahId: number, versesCount?: number) => void;
   isSurahCompleted: (surahId: number) => boolean;
   completedCount: number;
   progress: number;
+  todayVerses: number;
+  todayGoalMet: boolean;
+  todayProgress: number;
+  dailyGoal: number;
+  setDailyGoal: (goal: number) => void;
   recentActivity: DailyActivity[];
   resetProgress: () => void;
   currentStreak: number;
   longestStreak: number;
   lastReadDate: string | null;
+  todayDone: boolean;
+  atRisk: boolean;
 }
 
 const ProgressContext = createContext<ProgressContextType | null>(null);

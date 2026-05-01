@@ -1,10 +1,9 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import ProgressJourney from '../components/ProgressJourney';
+import { Link } from 'react-router-dom';
 import { useProgress } from '../context/ProgressContext';
 import { useBookmark } from '../context/BookmarkContext';
 import { fetchChapters } from '../services/quranApi';
-import { getVerseExplanation } from '../services/deepseekApi';
 import type { Chapter } from '../types/quran';
 import jsPDF from 'jspdf';
 import './ProgressPage.css';
@@ -13,10 +12,10 @@ const surahs = Array.from({ length: 114 }, (_, i) => i + 1);
 
 const container = {
   hidden: { opacity: 0 },
-  show: { opacity: 1, transition: { staggerChildren: 0.03 } },
+  show: { opacity: 1, transition: { staggerChildren: 0.04 } },
 };
 
-const item = {
+const fadeUp = {
   hidden: { opacity: 0, y: 24 },
   show: { opacity: 1, y: 0, transition: { duration: 0.5 } },
 };
@@ -40,17 +39,18 @@ const fallbackChapterNames: Record<number, string> = {
 };
 
 const ProgressPage: React.FC = () => {
-  const { progress, completedCount, records, isSurahCompleted, resetProgress, currentStreak, longestStreak, lastReadDate } = useProgress();
-  const { bookmarks, removeBookmark, updateNote, bookmarksCount } = useBookmark();
+  const {
+    progress, completedCount, records, isSurahCompleted, resetProgress,
+    currentStreak, longestStreak, lastReadDate, todayDone, atRisk,
+    todayVerses, todayGoalMet, todayProgress, dailyGoal, setDailyGoal,
+  } = useProgress();
+  const { bookmarksCount } = useBookmark();
   const remaining = 114 - completedCount;
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [exporting, setExporting] = useState<'csv' | 'txt' | 'pdf' | null>(null);
-  const [editingNote, setEditingNote] = useState<string | null>(null);
-  const [noteText, setNoteText] = useState('');
-  const [bookmarkLimit, setBookmarkLimit] = useState(5);
-  const [bmExplanation, setBmExplanation] = useState<Record<string, { explanation: string; context: string; themes: string[] } | null>>({});
-  const [bmExplaining, setBmExplaining] = useState<Record<string, boolean>>({});
+  const [showGoalInput, setShowGoalInput] = useState(false);
+  const [goalInput, setGoalInput] = useState(String(dailyGoal));
 
   const completedSurahs = useMemo(
     () => surahs.filter((id) => isSurahCompleted(id)),
@@ -76,23 +76,6 @@ const ProgressPage: React.FC = () => {
     const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
     return motivationalMessages[dayOfYear % motivationalMessages.length];
   }, []);
-
-  const handleBmExplain = async (verseKey: string, surahName: string, surahId: number, verseNumber: number, translation: string) => {
-    if (bmExplanation[verseKey]) {
-      setBmExplanation((prev) => ({ ...prev, [verseKey]: null }));
-      return;
-    }
-    setBmExplaining((prev) => ({ ...prev, [verseKey]: true }));
-    try {
-      const result = await getVerseExplanation(surahName, surahId, verseNumber, translation);
-      setBmExplanation((prev) => ({ ...prev, [verseKey]: result }));
-    } catch {
-      setBmExplanation((prev) => ({ ...prev, [verseKey]: { explanation: 'Unable to fetch explanation.', context: '', themes: [] } }));
-    }
-    setBmExplaining((prev) => ({ ...prev, [verseKey]: false }));
-  };
-
-  const visibleBookmarks = useMemo(() => bookmarks.slice(0, bookmarkLimit), [bookmarks, bookmarkLimit]);
 
   const exportCSV = () => {
     setExporting('csv');
@@ -147,11 +130,6 @@ const ProgressPage: React.FC = () => {
       const contentW = pw - margin * 2;
       let y = margin;
 
-      const gold = '#D4AF37';
-      const goldDark = '#B8962E';
-      const dark = '#1E293B';
-      const gray = '#CBD5E1';
-
       const addFooter = () => {
         pdf.setDrawColor(212, 175, 55);
         pdf.setLineWidth(0.3);
@@ -175,20 +153,14 @@ const ProgressPage: React.FC = () => {
         }
       };
 
-      // Top ornament
-      pdf.setDrawColor(212, 175, 55);
       pdf.setFillColor(212, 175, 55);
       for (let i = 0; i < 3; i++) {
-        const shade = i === 1 ? '#E8C44A' : i === 0 ? '#D4AF37' : '#B8962E';
-        pdf.setFillColor(shade === '#D4AF37' ? 212 : shade === '#E8C44A' ? 232 : 184, shade === '#D4AF37' ? 175 : shade === '#E8C44A' ? 196 : 150, shade === '#D4AF37' ? 55 : shade === '#E8C44A' ? 74 : 46);
+        const c = i === 1 ? [232, 196, 74] : i === 0 ? [212, 175, 55] : [184, 150, 46];
+        pdf.setFillColor(c[0], c[1], c[2]);
         pdf.rect(0, y, pw, 2, 'F');
         y += 2;
       }
       y += 6;
-
-      // Header
-      pdf.setFillColor(255, 251, 235);
-      pdf.rect(0, 0, pw, y - 6, 'F');
 
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(18);
@@ -198,11 +170,9 @@ const ProgressPage: React.FC = () => {
       pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(9);
       pdf.setTextColor(148, 163, 184);
-      const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
-      pdf.text(dateStr, pw / 2, y, { align: 'center' });
+      pdf.text(new Date().toLocaleDateString('en-US', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }), pw / 2, y, { align: 'center' });
       y += 16;
 
-      // Stats boxes
       const stats = [
         { label: 'Surahs Completed', value: String(completedCount), color: [34, 197, 94], fillColor: [240, 253, 244] },
         { label: 'Overall Progress', value: `${progress}%`, color: [212, 175, 55], fillColor: [255, 251, 235] },
@@ -226,13 +196,11 @@ const ProgressPage: React.FC = () => {
       });
       y += 44;
 
-      // Divider
       pdf.setDrawColor(212, 175, 55);
       pdf.setLineWidth(0.2);
       pdf.line(margin, y, pw - margin, y);
       y += 12;
 
-      // Section: Completion overview grid
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(11);
       pdf.setTextColor(184, 150, 46);
@@ -252,60 +220,50 @@ const ProgressPage: React.FC = () => {
           const done = completedSurahs.includes(id);
           const cx = startX + col * (cellSize + gap);
           const cy = y + row * (cellSize + gap);
-          if (done) {
-            pdf.setFillColor(212, 175, 55);
-            pdf.setDrawColor(212, 175, 55);
-          } else {
-            pdf.setFillColor(237, 240, 245);
-            pdf.setDrawColor(226, 232, 240);
-          }
+          pdf.setFillColor(done ? 212 : 237, done ? 175 : 240, done ? 55 : 245);
+          pdf.setDrawColor(done ? 212 : 226, done ? 175 : 232, done ? 55 : 240);
           pdf.roundedRect(cx, cy, cellSize, cellSize, 0.5, 0.5, 'FD');
         }
       }
-      y += Math.ceil(114 / cols) * (cellSize + gap) + 6;
+      y += Math.ceil(114 / cols) * (cellSize + gap) + 8;
 
-      // Legend
+      const legX1 = pw / 2 - 40;
+      pdf.setFillColor(237, 240, 245);
+      pdf.setDrawColor(226, 232, 240);
+      pdf.roundedRect(legX1, y, 8, 8, 1, 1, 'FD');
+      pdf.setTextColor(100, 116, 139);
+      pdf.setFont('helvetica', 'normal');
       pdf.setFontSize(7);
-      const legendItems = [
-        { label: `Not started (${remaining})`, color: [237, 240, 245], border: [226, 232, 240], x: pw / 2 - 40 },
-        { label: `Completed (${completedCount})`, color: [212, 175, 55], border: [212, 175, 55], x: pw / 2 + 20 },
-      ];
-      legendItems.forEach((item) => {
-        pdf.setFillColor(item.color[0], item.color[1], item.color[2]);
-        pdf.setDrawColor(item.border[0], item.border[1], item.border[2]);
-        pdf.roundedRect(item.x, y, 8, 8, 1, 1, 'FD');
-        pdf.setTextColor(100, 116, 139);
-        pdf.setFont('helvetica', 'normal');
-        pdf.text(item.label, item.x + 11, y + 6);
-      });
+      pdf.text(`Not started (${remaining})`, legX1 + 11, y + 6);
+
+      const legX2 = pw / 2 + 20;
+      pdf.setFillColor(212, 175, 55);
+      pdf.setDrawColor(212, 175, 55);
+      pdf.roundedRect(legX2, y, 8, 8, 1, 1, 'FD');
+      pdf.text(`Completed (${completedCount})`, legX2 + 11, y + 6);
       y += 16;
 
-      // Divider
       pdf.setDrawColor(212, 175, 55);
       pdf.setLineWidth(0.2);
       pdf.line(margin, y, pw - margin, y);
       y += 12;
 
-      // Section: All Surahs
       pdf.setFont('helvetica', 'bold');
       pdf.setFontSize(11);
       pdf.setTextColor(184, 150, 46);
       pdf.text('ALL SURAHS', margin, y);
       y += 10;
 
-      // Surah rows
       for (let i = 0; i < surahs.length; i++) {
         const id = surahs[i];
         const done = completedSurahs.includes(id);
         checkPage(8);
-
         const rowH = 6.5;
         const rowY = y;
 
-        // Row bg
         if (done) {
           pdf.setFillColor(255, 255, 255);
-          pdf.setDrawColor(212, 175, 55, 0.12 * 255);
+          pdf.setDrawColor(212, 175, 55, 0.12);
         } else {
           pdf.setFillColor(255, 255, 255);
           pdf.setDrawColor(241, 244, 249);
@@ -313,14 +271,13 @@ const ProgressPage: React.FC = () => {
         pdf.setLineWidth(0.3);
         pdf.roundedRect(margin, rowY, contentW, rowH, 2, 2, 'FD');
 
-        // Number circle
         const numCX = margin + 7;
         if (done) {
           pdf.setFillColor(212, 175, 55);
           pdf.setDrawColor(212, 175, 55);
         } else {
           pdf.setFillColor(255, 251, 235);
-          pdf.setDrawColor(212, 175, 55, 0.12 * 255);
+          pdf.setDrawColor(212, 175, 55, 0.12);
         }
         pdf.circle(numCX, rowY + rowH / 2, 3.2, 'FD');
         pdf.setFont('helvetica', 'bold');
@@ -328,14 +285,11 @@ const ProgressPage: React.FC = () => {
         pdf.setTextColor(done ? 255 : 184, done ? 255 : 150, done ? 255 : 46);
         pdf.text(String(id), numCX, rowY + rowH / 2 + 1.8, { align: 'center' });
 
-        // Name
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(7);
         pdf.setTextColor(30, 41, 59);
-        const name = getChapterName(id);
-        pdf.text(name, margin + 15, rowY + rowH / 2 + 1.5);
+        pdf.text(getChapterName(id), margin + 15, rowY + rowH / 2 + 1.5);
 
-        // Status
         const statusX = pw - margin - 55;
         pdf.setFont('helvetica', 'bold');
         pdf.setFontSize(6.5);
@@ -347,17 +301,14 @@ const ProgressPage: React.FC = () => {
           pdf.text('○ Not Started', statusX, rowY + rowH / 2 + 1.5);
         }
 
-        // Date
         pdf.setFont('helvetica', 'normal');
         pdf.setFontSize(6);
         pdf.setTextColor(148, 163, 184);
-        const dateVal = done ? formatDate(records[id]?.completedDate || '') : '—';
-        pdf.text(dateVal, pw - margin - 8, rowY + rowH / 2 + 1.5, { align: 'right' });
+        pdf.text(done ? formatDate(records[id]?.completedDate || '') : '—', pw - margin - 8, rowY + rowH / 2 + 1.5, { align: 'right' });
 
         y += rowH + 2;
       }
 
-      // Footer on last page
       addFooter();
       pdf.save(`quran-progress-${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (err) {
@@ -367,13 +318,20 @@ const ProgressPage: React.FC = () => {
     setExporting(null);
   };
 
+  const handleSetGoal = () => {
+    const val = parseInt(goalInput);
+    if (val > 0 && val <= 1000) {
+      setDailyGoal(val);
+      setShowGoalInput(false);
+    }
+  };
+
   return (
     <div className="progress-page">
       <section className="pp-hero">
         <div className="pp-hero-bg">
           <div className="pp-circle c1" />
           <div className="pp-circle c2" />
-          <div className="pp-circle c3" />
           <div className="pp-grid-pattern" />
         </div>
         <div className="container">
@@ -383,16 +341,17 @@ const ProgressPage: React.FC = () => {
             initial="hidden"
             animate="show"
           >
-            <motion.div className="pp-badge" variants={item}>
+            <motion.div className="pp-badge" variants={fadeUp}>
               <span className="pp-badge-dot" />
               Your Spiritual Dashboard
             </motion.div>
-            <motion.h1 className="pp-title" variants={item}>
+            <motion.h1 className="pp-title" variants={fadeUp}>
               Your <span className="pp-gold">Quran Journey</span>
             </motion.h1>
-            <motion.p className="pp-sub" variants={item}>
-              Every surah you complete brings you closer. Track your progress
-              and celebrate each milestone.
+            <motion.p className="pp-sub" variants={fadeUp}>
+              {completedCount === 0
+                ? 'Start your journey today — every verse counts.'
+                : `${completedCount} surahs completed · ${currentStreak} day streak`}
             </motion.p>
           </motion.div>
         </div>
@@ -407,7 +366,7 @@ const ProgressPage: React.FC = () => {
             whileInView="show"
             viewport={{ once: true, margin: '-40px' }}
           >
-            <motion.div className="pp-stat" variants={item}>
+            <motion.div className="pp-stat" variants={fadeUp}>
               <div className="pp-stat-icon pp-stat-complete">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
@@ -429,7 +388,7 @@ const ProgressPage: React.FC = () => {
               </div>
             </motion.div>
 
-            <motion.div className="pp-stat" variants={item}>
+            <motion.div className="pp-stat" variants={fadeUp}>
               <div className="pp-stat-icon pp-stat-progress">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 12A10 10 0 1112 2v4a6 6 0 100 12 6 6 0 006-6h4z" />
@@ -450,7 +409,7 @@ const ProgressPage: React.FC = () => {
               </div>
             </motion.div>
 
-            <motion.div className="pp-stat" variants={item}>
+            <motion.div className="pp-stat" variants={fadeUp}>
               <div className="pp-stat-icon pp-stat-remaining">
                 <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -483,8 +442,8 @@ const ProgressPage: React.FC = () => {
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
           >
-            <div className="pp-streak-card pp-streak-current">
-              <div className="pp-streak-icon">
+            <div className="pp-streak-card">
+              <div className={`pp-streak-icon ${atRisk ? 'at-risk' : todayDone ? 'done' : 'idle'}`}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
                 </svg>
@@ -492,12 +451,20 @@ const ProgressPage: React.FC = () => {
               <div className="pp-streak-body">
                 <span className="pp-streak-num">{currentStreak}</span>
                 <span className="pp-streak-label">Current Streak</span>
-                <span className="pp-streak-sub">{currentStreak === 0 ? 'Read today to start!' : currentStreak === 1 ? '1 day strong' : `${currentStreak} days in a row`}</span>
+                <span className="pp-streak-sub">
+                  {currentStreak === 0
+                    ? 'Complete a surah to start!'
+                    : atRisk
+                      ? 'Read today to keep it alive!'
+                      : todayDone
+                        ? 'Keep going!'
+                        : `${currentStreak} day${currentStreak > 1 ? 's' : ''}`}
+                </span>
               </div>
             </div>
 
-            <div className="pp-streak-card pp-streak-longest">
-              <div className="pp-streak-icon">
+            <div className="pp-streak-card">
+              <div className="pp-streak-icon best">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
                 </svg>
@@ -505,22 +472,112 @@ const ProgressPage: React.FC = () => {
               <div className="pp-streak-body">
                 <span className="pp-streak-num">{longestStreak}</span>
                 <span className="pp-streak-label">Longest Streak</span>
-                <span className="pp-streak-sub">{longestStreak === 0 ? 'No streak yet' : 'Best consistency record'}</span>
+                <span className="pp-streak-sub">{longestStreak === 0 ? 'Not started yet' : 'Your best run'}</span>
               </div>
             </div>
 
-            <div className="pp-streak-card pp-streak-last">
-              <div className="pp-streak-icon">
+            <div className="pp-streak-card">
+              <div className={`pp-streak-icon ${todayDone ? 'done' : 'idle'}`}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
                 </svg>
               </div>
               <div className="pp-streak-body">
-                <span className="pp-streak-num">{lastReadDate ? new Date(lastReadDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}</span>
+                <span className="pp-streak-num">
+                  {lastReadDate
+                    ? new Date(lastReadDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+                    : '—'}
+                </span>
                 <span className="pp-streak-label">Last Read</span>
-                <span className="pp-streak-sub">{lastReadDate ? (new Date(lastReadDate).toISOString().split('T')[0] === new Date().toISOString().split('T')[0] ? 'Today' : new Date(lastReadDate).toISOString().split('T')[0] === new Date(Date.now() - 86400000).toISOString().split('T')[0] ? 'Yesterday' : `${Math.round((Date.now() - new Date(lastReadDate).getTime()) / 86400000)} days ago`) : 'No activity'}</span>
+                <span className="pp-streak-sub">
+                  {lastReadDate
+                    ? lastReadDate === new Date().toISOString().split('T')[0]
+                      ? 'Today'
+                      : lastReadDate === new Date(Date.now() - 86400000).toISOString().split('T')[0]
+                        ? 'Yesterday'
+                        : `${Math.round((Date.now() - new Date(lastReadDate).getTime()) / 86400000)} days ago`
+                    : 'No activity'}
+                </span>
               </div>
             </div>
+          </motion.div>
+        </div>
+      </section>
+
+      <section className="pp-goal-section">
+        <div className="container">
+          <motion.div
+            className="pp-goal-card"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="pp-goal-header">
+              <div className="pp-goal-title-wrap">
+                <h3 className="pp-goal-title">Daily Goal</h3>
+                <p className="pp-goal-desc">
+                  {todayGoalMet
+                    ? 'Amazing! You hit your goal today.'
+                    : `${todayVerses} of ${dailyGoal} verses read today`}
+                </p>
+              </div>
+              <button className="pp-goal-edit" onClick={() => { setShowGoalInput(!showGoalInput); setGoalInput(String(dailyGoal)); }}>
+                {showGoalInput ? 'Cancel' : 'Edit'}
+              </button>
+            </div>
+
+            <div className="pp-goal-bar-wrap">
+              <div className="pp-goal-bar-label">
+                <span className="pp-goal-bar-text">Today's progress: <strong>{todayVerses}</strong> of {dailyGoal} verses</span>
+                <span className="pp-goal-bar-percent">{todayProgress}%</span>
+              </div>
+              <div className="pp-goal-bar-track">
+                <motion.div
+                  className="pp-goal-bar-fill"
+                  initial={{ width: 0 }}
+                  whileInView={{ width: `${todayProgress}%` }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 1, ease: 'easeOut' }}
+                />
+              </div>
+            </div>
+
+            {todayGoalMet && (
+              <motion.div
+                className="pp-goal-met"
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 6L9 17l-5-5" />
+                </svg>
+                Daily goal achieved
+              </motion.div>
+            )}
+
+            {showGoalInput && (
+              <motion.div
+                className="pp-goal-input-wrap"
+                initial={{ height: 0, opacity: 0 }}
+                animate={{ height: 'auto', opacity: 1 }}
+              >
+                <div className="pp-goal-input-row">
+                  <span className="pp-goal-input-label">Read</span>
+                  <input
+                    type="number"
+                    className="pp-goal-input"
+                    value={goalInput}
+                    onChange={(e) => setGoalInput(e.target.value)}
+                    min={1}
+                    max={1000}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSetGoal()}
+                  />
+                  <span className="pp-goal-input-label">verses per day</span>
+                  <button className="pp-goal-set-btn" onClick={handleSetGoal}>Set</button>
+                </div>
+              </motion.div>
+            )}
           </motion.div>
         </div>
       </section>
@@ -541,9 +598,7 @@ const ProgressPage: React.FC = () => {
             <div className="pp-graph-header">
               <div>
                 <h3 className="pp-graph-title">Completion Map</h3>
-                <p className="pp-graph-desc">
-                  {completedCount} of 114 surahs completed
-                </p>
+                <p className="pp-graph-desc">{completedCount} of 114 surahs completed</p>
               </div>
               <div className="pp-header-actions">
                 <div className="pp-export-group">
@@ -566,11 +621,7 @@ const ProgressPage: React.FC = () => {
                     {exporting === 'pdf' ? 'Exporting...' : 'PDF'}
                   </button>
                 </div>
-                <button
-                  className="pp-reset-btn"
-                  onClick={() => setShowResetConfirm(true)}
-                  title="Reset all progress"
-                >
+                <button className="pp-reset-btn" onClick={() => setShowResetConfirm(true)} title="Reset all progress">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M1 4v6h6M23 20v-6h-6" />
                     <path d="M20.49 9A9 9 0 005.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 013.51 15" />
@@ -590,7 +641,7 @@ const ProgressPage: React.FC = () => {
                       initial={{ scale: 0, opacity: 0 }}
                       whileInView={{ scale: 1, opacity: 1 }}
                       viewport={{ once: true }}
-                      transition={{ delay: id * 0.005, duration: 0.3 }}
+                      transition={{ delay: id * 0.003, duration: 0.25 }}
                       title={`Surah ${id}${done ? ' ✓' : ''}`}
                     />
                   );
@@ -606,6 +657,45 @@ const ProgressPage: React.FC = () => {
               </div>
               <span className="pp-graph-label">Completed</span>
             </div>
+          </motion.div>
+        </div>
+      </section>
+
+      <section className="pp-quick-links">
+        <div className="container">
+          <motion.div
+            className="pp-quick-grid"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <Link to="/" className="pp-quick-card">
+              <div className="pp-quick-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4 19.5A2.5 2.5 0 016.5 17H20" />
+                  <path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+                </svg>
+              </div>
+              <div className="pp-quick-body">
+                <span className="pp-quick-title">Browse Surahs</span>
+                <span className="pp-quick-sub">Read and explore with AI</span>
+              </div>
+              <span className="pp-quick-arrow">&rarr;</span>
+            </Link>
+
+            <Link to="/bookmarks" className="pp-quick-card">
+              <div className="pp-quick-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2v16z" />
+                </svg>
+              </div>
+              <div className="pp-quick-body">
+                <span className="pp-quick-title">Bookmarks</span>
+                <span className="pp-quick-sub">{bookmarksCount} verse{bookmarksCount !== 1 ? 's' : ''} saved</span>
+              </div>
+              <span className="pp-quick-arrow">&rarr;</span>
+            </Link>
           </motion.div>
         </div>
       </section>
@@ -630,138 +720,12 @@ const ProgressPage: React.FC = () => {
               <p className="pp-motivation-cta">
                 {completedCount === 0
                   ? 'Start your journey today — even one verse counts.'
-                  : `You've completed ${completedCount} surah${completedCount > 1 ? 's' : ''}! Keep the momentum going — read at least one verse daily.`}
+                  : `You've completed ${completedCount} surah${completedCount > 1 ? 's' : ''}! Keep the momentum going.`}
               </p>
             </div>
           </motion.div>
         </div>
       </section>
-
-      {bookmarksCount > 0 && (
-      <section className="pp-tree-section">
-        <div className="container">
-          <div className="pp-divider">
-            <span className="pp-divider-icon">✦</span>
-          </div>
-
-          <motion.div
-            className="pp-bookmarks-card"
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-          >
-            <div className="pp-graph-header">
-              <div>
-                <h3 className="pp-graph-title">Bookmarked Verses</h3>
-                <p className="pp-graph-desc">{bookmarksCount} verse{bookmarksCount > 1 ? 's' : ''} saved</p>
-              </div>
-            </div>
-            <div className="pp-bookmarks-list">
-              {visibleBookmarks.map((bm) => {
-                const exp = bmExplanation[bm.verseKey];
-                const explaining = bmExplaining[bm.verseKey];
-                return (
-                <div key={bm.verseKey} className="pp-bookmark-item">
-                  <div className="pp-bookmark-header">
-                    <span className="pp-bookmark-ref">{bm.surahName} — Verse {bm.verseNumber}</span>
-                    <button
-                      className="pp-bookmark-remove"
-                      onClick={() => removeBookmark(bm.verseKey)}
-                      title="Remove bookmark"
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M18 6L6 18M6 6l12 12" />
-                      </svg>
-                    </button>
-                  </div>
-                  <p className="pp-bookmark-arabic">{bm.arabicText}</p>
-                  <p className="pp-bookmark-translation">{bm.translation}</p>
-
-                  <div className="pp-bookmark-actions">
-                    <button
-                      className="pp-bm-explain-btn"
-                      onClick={() => handleBmExplain(bm.verseKey, bm.surahName, bm.surahId, bm.verseNumber, bm.translation)}
-                    >
-                      {explaining ? 'Thinking...' : exp ? 'Hide Explanation' : 'Explain with AI'}
-                    </button>
-                  </div>
-
-                  {exp && (
-                    <div className="pp-bm-explanation">
-                      {exp.themes.length > 0 && (
-                        <div className="pp-bm-themes">
-                          {exp.themes.map((t, i) => <span key={i} className="pp-bm-theme-tag">{t}</span>)}
-                        </div>
-                      )}
-                      {exp.context && <p className="pp-bm-context"><strong>Context:</strong> {exp.context}</p>}
-                      <p className="pp-bm-explain-text">{exp.explanation}</p>
-                    </div>
-                  )}
-
-                  {editingNote === bm.verseKey ? (
-                    <div className="pp-bookmark-note-edit">
-                      <textarea
-                        className="pp-note-input"
-                        value={noteText}
-                        onChange={(e) => setNoteText(e.target.value)}
-                        placeholder="Add your reflection..."
-                        rows={2}
-                      />
-                      <div className="pp-note-actions">
-                        <button className="pp-note-save" onClick={() => { updateNote(bm.verseKey, noteText); setEditingNote(null); }}>Save</button>
-                        <button className="pp-note-cancel" onClick={() => setEditingNote(null)}>Cancel</button>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="pp-bookmark-note">
-                      {bm.note ? (
-                        <p className="pp-note-text">{bm.note}</p>
-                      ) : (
-                        <button className="pp-note-add" onClick={() => { setEditingNote(bm.verseKey); setNoteText(''); }}>+ Add reflection</button>
-                      )}
-                      {bm.note && (
-                        <button className="pp-note-edit-btn" onClick={() => { setEditingNote(bm.verseKey); setNoteText(bm.note); }}>Edit</button>
-                      )}
-                    </div>
-                  )}
-                </div>
-                );
-              })}
-            </div>
-            {bookmarksCount > 5 && (
-              <div className="pp-bookmark-toggle-wrap">
-                <button
-                  className="pp-bookmark-toggle"
-                  onClick={() => setBookmarkLimit((prev) => (prev === 5 ? bookmarksCount : 5))}
-                >
-                  {bookmarkLimit === 5 ? `Show all ${bookmarksCount} bookmarks` : 'Show less'}
-                </button>
-              </div>
-            )}
-          </motion.div>
-        </div>
-      </section>
-      )}
-
-      <section className="pp-tree-section">
-        <div className="container">
-          <div className="pp-divider">
-            <span className="pp-divider-icon">✦</span>
-          </div>
-
-          <motion.div
-            initial={{ opacity: 0, y: 40 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.7 }}
-          >
-            <ProgressJourney progress={progress} />
-          </motion.div>
-        </div>
-      </section>
-
-
 
       <AnimatePresence>
         {showResetConfirm && (
@@ -790,15 +754,8 @@ const ProgressPage: React.FC = () => {
               <h4>Reset All Progress?</h4>
               <p>This will permanently erase your reading history and completed surahs. You cannot undo this.</p>
               <div className="pp-reset-actions">
-                <button className="pp-btn-cancel" onClick={() => setShowResetConfirm(false)}>
-                  Cancel
-                </button>
-                <button
-                  className="pp-btn-destructive"
-                  onClick={() => { resetProgress(); setShowResetConfirm(false); }}
-                >
-                  Yes, Reset
-                </button>
+                <button className="pp-btn-cancel" onClick={() => setShowResetConfirm(false)}>Cancel</button>
+                <button className="pp-btn-destructive" onClick={() => { resetProgress(); setShowResetConfirm(false); }}>Yes, Reset</button>
               </div>
             </motion.div>
           </motion.div>
