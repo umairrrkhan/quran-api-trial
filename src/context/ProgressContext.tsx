@@ -10,6 +10,9 @@ interface ProgressContextType {
   progress: number;
   recentActivity: DailyActivity[];
   resetProgress: () => void;
+  currentStreak: number;
+  longestStreak: number;
+  lastReadDate: string | null;
 }
 
 const ProgressContext = createContext<ProgressContextType | null>(null);

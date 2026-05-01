@@ -44,3 +44,14 @@ export interface DailyActivity {
   date: string;
   count: number;
 }
+
+export interface Bookmark {
+  verseKey: string;
+  surahId: number;
+  surahName: string;
+  verseNumber: number;
+  arabicText: string;
+  translation: string;
+  note: string;
+  createdAt: string;
+}

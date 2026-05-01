@@ -2,7 +2,9 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import ProgressJourney from '../components/ProgressJourney';
 import { useProgress } from '../context/ProgressContext';
+import { useBookmark } from '../context/BookmarkContext';
 import { fetchChapters } from '../services/quranApi';
+import { getVerseExplanation } from '../services/deepseekApi';
 import type { Chapter } from '../types/quran';
 import jsPDF from 'jspdf';
 import './ProgressPage.css';
@@ -38,11 +40,17 @@ const fallbackChapterNames: Record<number, string> = {
 };
 
 const ProgressPage: React.FC = () => {
-  const { progress, completedCount, records, isSurahCompleted, resetProgress } = useProgress();
+  const { progress, completedCount, records, isSurahCompleted, resetProgress, currentStreak, longestStreak, lastReadDate } = useProgress();
+  const { bookmarks, removeBookmark, updateNote, bookmarksCount } = useBookmark();
   const remaining = 114 - completedCount;
   const [showResetConfirm, setShowResetConfirm] = useState(false);
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [exporting, setExporting] = useState<'csv' | 'txt' | 'pdf' | null>(null);
+  const [editingNote, setEditingNote] = useState<string | null>(null);
+  const [noteText, setNoteText] = useState('');
+  const [bookmarkLimit, setBookmarkLimit] = useState(5);
+  const [bmExplanation, setBmExplanation] = useState<Record<string, { explanation: string; context: string; themes: string[] } | null>>({});
+  const [bmExplaining, setBmExplaining] = useState<Record<string, boolean>>({});
 
   const completedSurahs = useMemo(
     () => surahs.filter((id) => isSurahCompleted(id)),
@@ -68,6 +76,23 @@ const ProgressPage: React.FC = () => {
     const dayOfYear = Math.floor((Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / 86400000);
     return motivationalMessages[dayOfYear % motivationalMessages.length];
   }, []);
+
+  const handleBmExplain = async (verseKey: string, surahName: string, surahId: number, verseNumber: number, translation: string) => {
+    if (bmExplanation[verseKey]) {
+      setBmExplanation((prev) => ({ ...prev, [verseKey]: null }));
+      return;
+    }
+    setBmExplaining((prev) => ({ ...prev, [verseKey]: true }));
+    try {
+      const result = await getVerseExplanation(surahName, surahId, verseNumber, translation);
+      setBmExplanation((prev) => ({ ...prev, [verseKey]: result }));
+    } catch {
+      setBmExplanation((prev) => ({ ...prev, [verseKey]: { explanation: 'Unable to fetch explanation.', context: '', themes: [] } }));
+    }
+    setBmExplaining((prev) => ({ ...prev, [verseKey]: false }));
+  };
+
+  const visibleBookmarks = useMemo(() => bookmarks.slice(0, bookmarkLimit), [bookmarks, bookmarkLimit]);
 
   const exportCSV = () => {
     setExporting('csv');
@@ -449,6 +474,57 @@ const ProgressPage: React.FC = () => {
         </div>
       </section>
 
+      <section className="pp-streak-section">
+        <div className="container">
+          <motion.div
+            className="pp-streak-grid"
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+          >
+            <div className="pp-streak-card pp-streak-current">
+              <div className="pp-streak-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+                </svg>
+              </div>
+              <div className="pp-streak-body">
+                <span className="pp-streak-num">{currentStreak}</span>
+                <span className="pp-streak-label">Current Streak</span>
+                <span className="pp-streak-sub">{currentStreak === 0 ? 'Read today to start!' : currentStreak === 1 ? '1 day strong' : `${currentStreak} days in a row`}</span>
+              </div>
+            </div>
+
+            <div className="pp-streak-card pp-streak-longest">
+              <div className="pp-streak-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+                </svg>
+              </div>
+              <div className="pp-streak-body">
+                <span className="pp-streak-num">{longestStreak}</span>
+                <span className="pp-streak-label">Longest Streak</span>
+                <span className="pp-streak-sub">{longestStreak === 0 ? 'No streak yet' : 'Best consistency record'}</span>
+              </div>
+            </div>
+
+            <div className="pp-streak-card pp-streak-last">
+              <div className="pp-streak-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" /><path d="M12 6v6l4 2" />
+                </svg>
+              </div>
+              <div className="pp-streak-body">
+                <span className="pp-streak-num">{lastReadDate ? new Date(lastReadDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : '—'}</span>
+                <span className="pp-streak-label">Last Read</span>
+                <span className="pp-streak-sub">{lastReadDate ? (new Date(lastReadDate).toISOString().split('T')[0] === new Date().toISOString().split('T')[0] ? 'Today' : new Date(lastReadDate).toISOString().split('T')[0] === new Date(Date.now() - 86400000).toISOString().split('T')[0] ? 'Yesterday' : `${Math.round((Date.now() - new Date(lastReadDate).getTime()) / 86400000)} days ago`) : 'No activity'}</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
       <section className="pp-graph-section">
         <div className="container">
           <div className="pp-divider">
@@ -560,6 +636,113 @@ const ProgressPage: React.FC = () => {
           </motion.div>
         </div>
       </section>
+
+      {bookmarksCount > 0 && (
+      <section className="pp-tree-section">
+        <div className="container">
+          <div className="pp-divider">
+            <span className="pp-divider-icon">✦</span>
+          </div>
+
+          <motion.div
+            className="pp-bookmarks-card"
+            initial={{ opacity: 0, y: 40 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.7 }}
+          >
+            <div className="pp-graph-header">
+              <div>
+                <h3 className="pp-graph-title">Bookmarked Verses</h3>
+                <p className="pp-graph-desc">{bookmarksCount} verse{bookmarksCount > 1 ? 's' : ''} saved</p>
+              </div>
+            </div>
+            <div className="pp-bookmarks-list">
+              {visibleBookmarks.map((bm) => {
+                const exp = bmExplanation[bm.verseKey];
+                const explaining = bmExplaining[bm.verseKey];
+                return (
+                <div key={bm.verseKey} className="pp-bookmark-item">
+                  <div className="pp-bookmark-header">
+                    <span className="pp-bookmark-ref">{bm.surahName} — Verse {bm.verseNumber}</span>
+                    <button
+                      className="pp-bookmark-remove"
+                      onClick={() => removeBookmark(bm.verseKey)}
+                      title="Remove bookmark"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                      </svg>
+                    </button>
+                  </div>
+                  <p className="pp-bookmark-arabic">{bm.arabicText}</p>
+                  <p className="pp-bookmark-translation">{bm.translation}</p>
+
+                  <div className="pp-bookmark-actions">
+                    <button
+                      className="pp-bm-explain-btn"
+                      onClick={() => handleBmExplain(bm.verseKey, bm.surahName, bm.surahId, bm.verseNumber, bm.translation)}
+                    >
+                      {explaining ? 'Thinking...' : exp ? 'Hide Explanation' : 'Explain with AI'}
+                    </button>
+                  </div>
+
+                  {exp && (
+                    <div className="pp-bm-explanation">
+                      {exp.themes.length > 0 && (
+                        <div className="pp-bm-themes">
+                          {exp.themes.map((t, i) => <span key={i} className="pp-bm-theme-tag">{t}</span>)}
+                        </div>
+                      )}
+                      {exp.context && <p className="pp-bm-context"><strong>Context:</strong> {exp.context}</p>}
+                      <p className="pp-bm-explain-text">{exp.explanation}</p>
+                    </div>
+                  )}
+
+                  {editingNote === bm.verseKey ? (
+                    <div className="pp-bookmark-note-edit">
+                      <textarea
+                        className="pp-note-input"
+                        value={noteText}
+                        onChange={(e) => setNoteText(e.target.value)}
+                        placeholder="Add your reflection..."
+                        rows={2}
+                      />
+                      <div className="pp-note-actions">
+                        <button className="pp-note-save" onClick={() => { updateNote(bm.verseKey, noteText); setEditingNote(null); }}>Save</button>
+                        <button className="pp-note-cancel" onClick={() => setEditingNote(null)}>Cancel</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="pp-bookmark-note">
+                      {bm.note ? (
+                        <p className="pp-note-text">{bm.note}</p>
+                      ) : (
+                        <button className="pp-note-add" onClick={() => { setEditingNote(bm.verseKey); setNoteText(''); }}>+ Add reflection</button>
+                      )}
+                      {bm.note && (
+                        <button className="pp-note-edit-btn" onClick={() => { setEditingNote(bm.verseKey); setNoteText(bm.note); }}>Edit</button>
+                      )}
+                    </div>
+                  )}
+                </div>
+                );
+              })}
+            </div>
+            {bookmarksCount > 5 && (
+              <div className="pp-bookmark-toggle-wrap">
+                <button
+                  className="pp-bookmark-toggle"
+                  onClick={() => setBookmarkLimit((prev) => (prev === 5 ? bookmarksCount : 5))}
+                >
+                  {bookmarkLimit === 5 ? `Show all ${bookmarksCount} bookmarks` : 'Show less'}
+                </button>
+              </div>
+            )}
+          </motion.div>
+        </div>
+      </section>
+      )}
 
       <section className="pp-tree-section">
         <div className="container">

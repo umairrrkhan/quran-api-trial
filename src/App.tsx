@@ -1,6 +1,7 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { ProgressProvider } from './context/ProgressContext';
+import { BookmarkProvider } from './context/BookmarkContext';
 import Navigation from './components/Navigation';
 import Footer from './components/Footer';
 import HomePage from './pages/HomePage';
@@ -12,6 +13,7 @@ const App: React.FC = () => {
   return (
     <Router>
       <ProgressProvider>
+        <BookmarkProvider>
         <div className="App">
           <Navigation />
           <main style={{ paddingTop: '20px' }}>
@@ -23,6 +25,7 @@ const App: React.FC = () => {
           </main>
           <Footer />
         </div>
+        </BookmarkProvider>
       </ProgressProvider>
     </Router>
   );

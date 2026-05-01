@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getVerseExplanation } from '../services/deepseekApi';
+import { useBookmark } from '../context/BookmarkContext';
 import type { SurahContent } from '../types/quran';
 import './SurahModal.css';
 
@@ -101,6 +102,7 @@ const SurahModal: React.FC<SurahModalProps> = ({
   onMarkComplete,
 }) => {
   const chapter = surah.chapter;
+  const { isBookmarked, addBookmark, removeBookmark, updateNote } = useBookmark();
 
   return (
     <motion.div
@@ -164,13 +166,44 @@ const SurahModal: React.FC<SurahModalProps> = ({
               .filter((w) => w.char_type_name !== 'end')
               .map((w) => w.translation.text)
               .join(' ');
+            const verseKey = `${chapter.id}:${verse.verse_number}`;
+            const bookmarked = isBookmarked(verseKey);
 
             return (
-              <div key={verse.id} className="verse-item">
+              <div key={verse.id} className={`verse-item ${bookmarked ? 'bookmarked' : ''}`}>
                 <div className="verse-header">
                   <span className="verse-number">
                     Verse {verse.verse_number}
                   </span>
+                  <button
+                    className={`verse-bookmark-btn ${bookmarked ? 'active' : ''}`}
+                    onClick={() => {
+                      if (bookmarked) {
+                        removeBookmark(verseKey);
+                      } else {
+                        const arabicText = verse.words
+                          .filter((w) => w.char_type_name === 'word')
+                          .map((w) => w.text_uthmani || w.text)
+                          .join(' ');
+                        addBookmark({
+                          verseKey,
+                          surahId: chapter.id,
+                          surahName: chapter.name_simple,
+                          verseNumber: verse.verse_number,
+                          arabicText,
+                          translation: translationText,
+                          note: '',
+                          createdAt: new Date().toISOString(),
+                        });
+                      }
+                    }}
+                    title={bookmarked ? 'Remove bookmark' : 'Bookmark this verse'}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2v16z" />
+                    </svg>
+                    <span>{bookmarked ? 'Saved' : 'Save'}</span>
+                  </button>
                 </div>
                 {verse.words.filter((w) => w.char_type_name === 'word')
                   .length > 0 && (
@@ -182,12 +215,14 @@ const SurahModal: React.FC<SurahModalProps> = ({
                   </div>
                 )}
                 <div className="verse-translation">{translationText}</div>
-                <VerseExplorer
-                  surahName={chapter.name_simple}
-                  surahId={chapter.id}
-                  verseNumber={verse.verse_number}
-                  translation={translationText}
-                />
+                <div className="verse-actions-row">
+                  <VerseExplorer
+                    surahName={chapter.name_simple}
+                    surahId={chapter.id}
+                    verseNumber={verse.verse_number}
+                    translation={translationText}
+                  />
+                </div>
               </div>
             );
           })}

@@ -61,6 +61,51 @@ export function useReadingProgress() {
     }));
   }, [records]);
 
+  const streakData = useMemo(() => {
+    const activeDates = new Set<string>();
+    Object.values(records).forEach((r) => {
+      if (r.completed) activeDates.add(r.completedDate.split('T')[0]);
+    });
+
+    const sorted = Array.from(activeDates).sort().reverse();
+    const lastReadDate = sorted.length > 0 ? sorted[0] : null;
+
+    const today = new Date().toISOString().split('T')[0];
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+    let currentStreak = 0;
+    if (activeDates.has(today) || activeDates.has(yesterday)) {
+      const start = activeDates.has(today) ? today : yesterday;
+      let cursor = new Date(start);
+      while (true) {
+        const ds = cursor.toISOString().split('T')[0];
+        if (activeDates.has(ds)) {
+          currentStreak++;
+          cursor.setDate(cursor.getDate() - 1);
+        } else break;
+      }
+    }
+
+    let longestStreak = 0;
+    if (sorted.length > 0) {
+      let streak = 1;
+      for (let i = 0; i < sorted.length - 1; i++) {
+        const curr = new Date(sorted[i]);
+        const next = new Date(sorted[i + 1]);
+        const diff = (curr.getTime() - next.getTime()) / 86400000;
+        if (Math.round(diff) === 1) {
+          streak++;
+        } else {
+          if (streak > longestStreak) longestStreak = streak;
+          streak = 1;
+        }
+      }
+      if (streak > longestStreak) longestStreak = streak;
+    }
+
+    return { currentStreak, longestStreak, lastReadDate };
+  }, [records]);
+
   const resetProgress = useCallback(() => {
     setRecords({});
   }, [setRecords]);
@@ -73,5 +118,6 @@ export function useReadingProgress() {
     progress,
     recentActivity,
     resetProgress,
+    ...streakData,
   };
 }

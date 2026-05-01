@@ -29,6 +29,22 @@ const motivationalQuotes = [
   '"And whoever puts their trust in Allah, He is sufficient for them." — Quran 65:3',
 ];
 
+const versesOfTheDay = [
+  { verse: 'Indeed, this Quran guides to that which is most just.', ref: 'Quran 17:9' },
+  { verse: 'And We have certainly made the Quran easy to remember, so is there anyone who will be mindful?', ref: 'Quran 54:17' },
+  { verse: 'Your Lord has not taken leave of you, nor has He detested you.', ref: 'Quran 93:3' },
+  { verse: 'And whoever fears Allah — He will make for him a way out. And will provide for him from where he does not expect.', ref: 'Quran 65:2-3' },
+  { verse: 'And when My servants ask you concerning Me — indeed I am near.', ref: 'Quran 2:186' },
+  { verse: 'Indeed, with hardship comes ease.', ref: 'Quran 94:6' },
+  { verse: 'Say, O My servants who have transgressed against themselves, do not despair of the mercy of Allah.', ref: 'Quran 39:53' },
+  { verse: 'And He found you lost and guided you.', ref: 'Quran 93:7' },
+  { verse: 'So remember Me; I will remember you.', ref: 'Quran 2:152' },
+  { verse: 'And whoever puts their trust in Allah — He is sufficient for them.', ref: 'Quran 65:3' },
+  { verse: 'And your Lord creates what He wills and chooses.', ref: 'Quran 28:68' },
+  { verse: 'And the Hereafter is better for you than the first life.', ref: 'Quran 93:4' },
+  { verse: 'Call upon Me; I will respond to you.', ref: 'Quran 40:60' },
+];
+
 const ChaptersSection: React.FC = () => {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,6 +56,12 @@ const ChaptersSection: React.FC = () => {
     const today = new Date().toISOString().split('T')[0];
     const dayIndex = today.split('-').reduce((a, b) => a + parseInt(b), 0);
     return motivationalQuotes[dayIndex % motivationalQuotes.length];
+  });
+
+  const [dailyVerse] = useState(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const dayIndex = today.split('-').reduce((a, b) => a + parseInt(b), 0);
+    return versesOfTheDay[dayIndex % versesOfTheDay.length];
   });
 
   const filteredChapters = useMemo(() => {
@@ -133,6 +155,24 @@ const ChaptersSection: React.FC = () => {
             </svg>
           </div>
           <p className="motivation-text">{dailyQuote}</p>
+        </motion.div>
+
+        <motion.div
+          className="verse-of-day"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <div className="vod-icon">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 016.5 17H20" /><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z" />
+            </svg>
+          </div>
+          <div className="vod-body">
+            <p className="vod-label">Verse of the Day</p>
+            <p className="vod-text">"{dailyVerse.verse}"</p>
+            <p className="vod-ref">— {dailyVerse.ref}</p>
+          </div>
         </motion.div>
 
         <div className="chapters-filter">

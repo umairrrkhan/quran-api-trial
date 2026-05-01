@@ -135,11 +135,51 @@
   border-color: var(--border-glass-hover);
 }
 
+.verse-item.bookmarked {
+  border-color: rgba(212, 175, 55, 0.3);
+  background: #FFFBEB;
+}
+
 .verse-header {
   margin-bottom: 12px;
   display: flex;
   align-items: center;
   justify-content: space-between;
+}
+
+.verse-bookmark-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 14px;
+  border-radius: 50px;
+  border: 1px solid var(--border-glass);
+  background: white;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+}
+
+.verse-bookmark-btn:hover {
+  border-color: var(--gold);
+  color: var(--gold-dark);
+  background: #FFFBEB;
+}
+
+.verse-bookmark-btn.active {
+  background: var(--gradient-gold);
+  color: white;
+  border-color: transparent;
+}
+
+.verse-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
 }
 
 .verse-number {
