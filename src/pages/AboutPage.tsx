@@ -14,49 +14,64 @@ const AboutPage: React.FC = () => {
           transition={{ duration: 0.6 }}
         >
           <div className="about-header">
-            <h1>About the Developer</h1>
+            <h1>About This Project</h1>
             <div className="accent-line" />
           </div>
 
           <div className="about-main">
             <div className="creator-intro">
               <h2>
-                Hi, I'm <span className="gold-highlight">Umair Khan</span>
+                Quran Journey Tracker
               </h2>
               <p className="creator-title">
-                Founding Engineer | First Class Honors | International Hackathon Winner
+                Built for the Quran Foundation Hackathon
               </p>
 
               <div className="creator-description">
                 <p>
-                  I'm a founding engineer with a First Class Honors degree in Computer Science
-                  and winner of the Minimax International Hackathon.
+                  This project started as a hackathon submission for the Quran Foundation
+                  Hackathon and has since been extended far beyond its original scope.
+                  What began as a simple reading tracker evolved into a full-featured Quran
+                  companion with AI-powered explanations, progress tracking, and a beautiful
+                  modern interface.
                 </p>
-                <p>
-                  QuranHub was built to help people connect with the Holy Quran through
-                  intelligent technology — combining AI-powered explanations, reading progress
-                  tracking, and a beautiful, modern interface.
-                </p>
-                <p>
-                  I specialize in building scalable applications with clean architecture
-                  and user-centric design. My passion is creating solutions that make
-                  a meaningful impact.
-                </p>
+
+                <h3>Tech Stack</h3>
+                <ul className="tech-list">
+                  <li><strong>Quran Foundation API</strong> — All Quranic content including chapters, verses, and translations</li>
+                  <li><strong>DeepSeek API</strong> — AI-powered verse explanations and context</li>
+                  <li><strong>React 18 + TypeScript</strong> — Frontend framework with full type safety</li>
+                  <li><strong>Framer Motion</strong> — Smooth animations and page transitions</li>
+                  <li><strong>jsPDF</strong> — PDF export with native programmatic rendering</li>
+                  <li><strong>React Router</strong> — Client-side routing between pages</li>
+                </ul>
+
+                <h3>Key Features</h3>
+                <ul className="tech-list">
+                  <li>Browse all 114 surahs with Arabic text and English translations</li>
+                  <li>AI-powered verse explanations with context and themes</li>
+                  <li>Reading progress tracking with visual completion map</li>
+                  <li>Filter surahs by completed / not completed status</li>
+                  <li>Export progress as CSV, TXT, or beautifully styled PDF</li>
+                  <li>Daily motivational verses to encourage consistent reading</li>
+                  <li>Emotion-based surah recommendations</li>
+                  <li>Animated lantern visualization of reading journey</li>
+                </ul>
               </div>
             </div>
 
             <div className="connect-section">
-              <h3>Let's Connect</h3>
-              <p>For more of my work and collaborations:</p>
+              <h3>Open Source</h3>
+              <p>This project is open source. View the code, report issues, or contribute:</p>
               <div className="social-links-large">
-                <a href="https://github.com/umairrrkhan" target="_blank" rel="noopener noreferrer" className="social-link-btn">
-                  <span>View My GitHub</span>
+                <a href="https://github.com/umairrrkhan/quran-api-trial" target="_blank" rel="noopener noreferrer" className="social-link-btn">
+                  <span>View on GitHub</span>
                   <span className="link-arrow">&rarr;</span>
                 </a>
-                <a href="https://www.linkedin.com/in/umairkhannn/" target="_blank" rel="noopener noreferrer" className="social-link-btn">
-                  <span>Connect on LinkedIn</span>
+                <Link to="/" className="social-link-btn">
+                  <span>Explore the Quran</span>
                   <span className="link-arrow">&rarr;</span>
-                </a>
+                </Link>
               </div>
             </div>
           </div>
