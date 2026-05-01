@@ -26,7 +26,11 @@ A full-featured Quran companion app that lets you browse all 114 surahs, read ve
 - **Emotion-Based Search** — Type how you feel and get AI-recommended surahs
 - **Export Data** — Download your progress as CSV, TXT, or a beautifully styled PDF
 - **Daily Motivation** — Rotating Quranic verses and hadith to encourage daily reading
+- **Streak Tracking** — Current streak, longest streak, and last read date to build habits
+- **Bookmarks & Notes** — Save meaningful verses with personal reflections and AI explanations
+- **Verse of the Day** — Daily rotating Quranic verses on the home page
 - **Animated Lantern** — Visual progress representation with an Islamic lantern motif
+- **Modern Footer** — Dark-themed animated footer with wave separator, social links, and CTA
 - **Fully Responsive** — Works on desktop, tablet, and mobile
 
 ## Getting Started
@@ -46,21 +50,27 @@ npm run build
 
 ```
 src/
-├── components/       # Reusable UI components
-│   ├── sections/     # Page sections (Hero, Chapters, Search)
+├── components/           # Reusable UI components
+│   ├── sections/         # Page sections (Hero, Chapters, Search)
 │   ├── Navigation.tsx
 │   ├── Footer.tsx
 │   ├── SurahModal.tsx
 │   └── ProgressJourney.tsx
-├── pages/            # Route pages
+├── pages/                # Route pages
 │   ├── HomePage.tsx
 │   ├── ProgressPage.tsx
 │   └── AboutPage.tsx
-├── context/          # React Context for progress state
-├── hooks/            # Custom hooks (localStorage, progress)
-├── services/         # API clients (Quran API, DeepSeek API)
-├── types/            # TypeScript interfaces
-└── styles/           # Global CSS
+├── context/              # React Context providers
+│   ├── ProgressContext.tsx
+│   └── BookmarkContext.tsx
+├── hooks/                # Custom hooks
+│   ├── useReadingProgress.ts
+│   ├── useBookmarks.ts
+│   ├── useLocalStorage.ts
+│   └── useAnimations.ts
+├── services/             # API clients (Quran API, DeepSeek API)
+├── types/                # TypeScript interfaces
+└── styles/               # Global CSS
 ```
 
 ## APIs Used
