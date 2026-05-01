@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SurahModal from '../SurahModal';
 import { fetchChapters, fetchChapterVerses } from '../../services/quranApi';
@@ -14,12 +14,49 @@ const fallbackChapters: Chapter[] = [
   { id: 5, name_simple: "Al-Ma'idah", name_arabic: 'المائدة', translated_name: { language_name: 'english', name: 'The Table Spread' }, verses_count: 120, revelation_place: 'madinah' },
 ];
 
+type FilterType = 'all' | 'completed' | 'not-completed';
+
+const motivationalQuotes = [
+  '"The best among you are those who learn the Quran and teach it." — Prophet Muhammad (PBUH)',
+  '"Read the Quran, for it will come as an intercessor for its reciters on the Day of Resurrection." — Prophet Muhammad (PBUH)',
+  '"Whoever recites a letter from the Book of Allah will be credited with a good deed, and a good deed gets ten-fold reward." — Prophet Muhammad (PBUH)',
+  '"The most beloved deed to Allah is the most regular and consistent even if it were little." — Prophet Muhammad (PBUH)',
+  '"Take benefit of five before five: your youth before your old age, your health before your sickness…" — Prophet Muhammad (PBUH)',
+  '"The one who recites the Quran and acts upon it, his parents will be crowned on the Day of Resurrection with a light brighter than the sun." — Prophet Muhammad (PBUH)',
+  '"Your Lord says: If you come to Me walking, I will come to you running." — Hadith Qudsi',
+  '"Allah does not burden a soul more than it can bear." — Quran 2:286',
+  '"So verily, with every difficulty there is ease." — Quran 94:5',
+  '"And whoever puts their trust in Allah, He is sufficient for them." — Quran 65:3',
+];
+
 const ChaptersSection: React.FC = () => {
   const [chapters, setChapters] = useState<Chapter[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSurah, setSelectedSurah] = useState<SurahContent | null>(null);
   const [loadingContent, setLoadingContent] = useState(false);
+  const [filter, setFilter] = useState<FilterType>('all');
   const { isSurahCompleted, markSurahCompleted } = useProgress();
+  const [dailyQuote] = useState(() => {
+    const today = new Date().toISOString().split('T')[0];
+    const dayIndex = today.split('-').reduce((a, b) => a + parseInt(b), 0);
+    return motivationalQuotes[dayIndex % motivationalQuotes.length];
+  });
+
+  const filteredChapters = useMemo(() => {
+    switch (filter) {
+      case 'completed':
+        return chapters.filter((c) => isSurahCompleted(c.id));
+      case 'not-completed':
+        return chapters.filter((c) => !isSurahCompleted(c.id));
+      default:
+        return chapters;
+    }
+  }, [chapters, filter, isSurahCompleted]);
+
+  const counts = useMemo(() => {
+    const completed = chapters.filter((c) => isSurahCompleted(c.id)).length;
+    return { completed, total: chapters.length };
+  }, [chapters, isSurahCompleted]);
 
   useEffect(() => {
     const load = async () => {
@@ -84,13 +121,54 @@ const ChaptersSection: React.FC = () => {
           </p>
         </motion.div>
 
+        <motion.div
+          className="daily-motivation"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+        >
+          <div className="motivation-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 20h9" /><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" />
+            </svg>
+          </div>
+          <p className="motivation-text">{dailyQuote}</p>
+        </motion.div>
+
+        <div className="chapters-filter">
+          <button
+            className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+            onClick={() => setFilter('all')}
+          >
+            All ({counts.total})
+          </button>
+          <button
+            className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
+            onClick={() => setFilter('completed')}
+          >
+            Completed ({counts.completed})
+          </button>
+          <button
+            className={`filter-btn ${filter === 'not-completed' ? 'active' : ''}`}
+            onClick={() => setFilter('not-completed')}
+          >
+            Not Completed ({counts.total - counts.completed})
+          </button>
+        </div>
+
         <div className="chapters-grid">
-          {chapters.map((chapter, i) => {
+          {filteredChapters.length === 0 && (
+            <div className="filter-empty">
+              <p>{filter === 'completed' ? 'No completed surahs yet. Start reading!' : filter === 'not-completed' ? 'All surahs completed! Masha\'Allah!' : ''}</p>
+            </div>
+          )}
+          {filteredChapters.map((chapter, i) => {
             const completed = isSurahCompleted(chapter.id);
             return (
               <motion.div
                 key={chapter.id}
                 className={`chapter-card ${completed ? 'completed' : ''}`}
+                layout
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}

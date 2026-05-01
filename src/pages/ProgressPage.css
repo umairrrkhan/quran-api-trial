@@ -231,6 +231,114 @@
   background: var(--bg-primary);
 }
 
+/* ===== HEADER ACTIONS ===== */
+.pp-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.pp-export-group {
+  display: flex;
+  gap: 6px;
+}
+
+.pp-export-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: 50px;
+  border: 1px solid var(--border-glass);
+  background: white;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+  white-space: nowrap;
+}
+
+.pp-export-btn:hover:not(:disabled) {
+  border-color: var(--border-glass-hover);
+  color: var(--gold-dark);
+  background: #FFFBEB;
+}
+
+.pp-export-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.pp-export-pdf:hover:not(:disabled) {
+  border-color: rgba(220, 38, 38, 0.2);
+  color: #DC2626;
+  background: #FEF2F2;
+}
+
+/* ===== MOTIVATION SECTION ===== */
+.pp-motivation-section {
+  padding: 0 0 40px;
+  background: var(--bg-primary);
+}
+
+.pp-motivation-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  background: linear-gradient(135deg, #FFFBEB, #FEF3C7, #FFF7ED);
+  border: 1px solid rgba(212, 175, 55, 0.2);
+  border-radius: 20px;
+  padding: 28px 32px;
+  max-width: 820px;
+  margin: 0 auto;
+  box-shadow: 0 4px 24px rgba(212, 175, 55, 0.08);
+}
+
+.pp-motivation-icon {
+  width: 48px;
+  height: 48px;
+  min-width: 48px;
+  background: var(--gradient-gold);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  box-shadow: 0 4px 12px rgba(212, 175, 55, 0.25);
+}
+
+.pp-motivation-body {
+  flex: 1;
+}
+
+.pp-motivation-verse {
+  font-size: 1.15rem;
+  font-weight: 600;
+  color: var(--gold-dark);
+  font-style: italic;
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
+
+.pp-motivation-ref {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+
+.pp-motivation-cta {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+  padding-top: 12px;
+  border-top: 1px solid rgba(212, 175, 55, 0.15);
+  margin: 0;
+}
+
+
+
 /* ===== GRAPH SECTION ===== */
 .pp-graph-section {
   padding: 0 0 80px;
@@ -467,6 +575,10 @@
   .pp-reset-modal { padding: 32px 24px 24px; }
   .pp-reset-modal h4 { font-size: 1.1rem; }
   .pp-tree-section { padding: 0 0 60px; }
+  .pp-export-group { gap: 4px; }
+  .pp-export-btn { padding: 5px 10px; font-size: 0.7rem; }
+  .pp-motivation-card { padding: 20px 24px; flex-direction: column; align-items: center; text-align: center; }
+  .pp-motivation-verse { font-size: 1rem; }
 }
 
 @media (max-width: 480px) {
@@ -480,7 +592,8 @@
   .pp-stat-icon { width: 36px; height: 36px; }
   .pp-stat-num { font-size: 1.3rem; }
   .pp-graph-card { padding: 16px; border-radius: 16px; }
-  .pp-graph-header { margin-bottom: 20px; }
+  .pp-graph-header { margin-bottom: 20px; flex-direction: column; gap: 12px; }
+  .pp-header-actions { width: 100%; justify-content: flex-end; }
   .pp-graph-grid { grid-template-columns: repeat(8, 16px); gap: 3px; }
   .pp-graph-cell { width: 16px; height: 16px; border-radius: 3px; }
   .pp-graph-title { font-size: 0.9rem; }
@@ -489,4 +602,7 @@
   .pp-graph-footer { gap: 6px; margin-top: 16px; padding-top: 14px; }
   .pp-reset-btn { width: 32px; height: 32px; }
   .pp-reset-btn svg { width: 14px; height: 14px; }
+  .pp-export-btn { padding: 4px 8px; font-size: 0.65rem; }
+  .pp-motivation-card { padding: 16px 20px; }
+  .pp-motivation-verse { font-size: 0.95rem; }
 }
