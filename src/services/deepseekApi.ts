@@ -29,11 +29,12 @@ export async function getVerseExplanation(
   });
 
   const content = completion.choices[0]?.message?.content || '';
+  const cleaned = content.replace(/^```(?:json)?\s*\n?/gm, '').replace(/\n?```\s*$/gm, '').trim();
   try {
-    return JSON.parse(content);
+    return JSON.parse(cleaned);
   } catch {
     return {
-      explanation: content,
+      explanation: cleaned,
       context: '',
       themes: [],
     };
