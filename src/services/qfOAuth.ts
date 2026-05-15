@@ -26,8 +26,8 @@ export interface QfUser {
 }
 
 const AUTH_BASE = 'https://prelive-oauth2.quran.foundation';
-const CLIENT_ID = '87902d27-0f98-4bc5-a8b6-04b93819917c';
-const CLIENT_SECRET = '4Kka8rnu4YJFs-vmT~DW~amTin';
+const CLIENT_ID = 'f715ef2d-0467-4ef7-9c25-5326945dd8da';
+const CLIENT_SECRET = 'l-BW7unmcD1Qp.dye1xGtI0TwM';
 
 function base64url(buf: ArrayBuffer): string {
   const bytes = new Uint8Array(buf);
