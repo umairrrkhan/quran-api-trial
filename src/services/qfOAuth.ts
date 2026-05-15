@@ -1,0 +1,159 @@
+export interface PkcePair {
+  codeVerifier: string;
+  codeChallenge: string;
+}
+
+export interface AuthSession {
+  state: string;
+  nonce: string;
+  codeVerifier: string;
+  redirectUri: string;
+}
+
+export interface TokenSet {
+  accessToken: string;
+  refreshToken?: string;
+  idToken?: string;
+  expiresIn: number;
+  scope?: string;
+}
+
+export interface QfUser {
+  sub: string;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+}
+
+const AUTH_BASE = 'https://prelive-oauth2.quran.foundation';
+const CLIENT_ID = '87902d27-0f98-4bc5-a8b6-04b93819917c';
+const CLIENT_SECRET = '4Kka8rnu4YJFs-vmT~DW~amTin';
+
+function base64url(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary)
+    .replace(/\+/g, '-')
+    .replace(/\//g, '_')
+    .replace(/=+$/, '');
+}
+
+export function randomString(bytes = 16): string {
+  const buf = new Uint8Array(bytes);
+  crypto.getRandomValues(buf);
+  let result = '';
+  for (let i = 0; i < buf.length; i++) {
+    result += buf[i].toString(16).padStart(2, '0');
+  }
+  return result;
+}
+
+export async function generatePkcePair(): Promise<PkcePair> {
+  const codeVerifierBuf = new Uint8Array(32);
+  crypto.getRandomValues(codeVerifierBuf);
+  const codeVerifier = base64url(codeVerifierBuf.buffer);
+  const hash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codeVerifier));
+  const codeChallenge = base64url(hash);
+  return { codeVerifier, codeChallenge };
+}
+
+export async function buildLoginUrl(): Promise<{ url: string; session: AuthSession }> {
+  const redirectUri = `${window.location.origin}/callback`;
+  const { codeVerifier, codeChallenge } = await generatePkcePair();
+  const state = randomString(16);
+  const nonce = randomString(16);
+
+  const params = new URLSearchParams();
+  params.set('response_type', 'code');
+  params.set('client_id', CLIENT_ID);
+  params.set('redirect_uri', redirectUri);
+  params.set('scope', 'openid offline_access user collection');
+  params.set('state', state);
+  params.set('nonce', nonce);
+  params.set('code_challenge', codeChallenge);
+  params.set('code_challenge_method', 'S256');
+
+  const url = `${AUTH_BASE}/oauth2/auth?${params.toString()}`;
+  const session: AuthSession = { state, nonce, codeVerifier, redirectUri };
+
+  return { url, session };
+}
+
+export async function exchangeCodeForTokens(
+  code: string,
+  codeVerifier: string,
+  redirectUri: string
+): Promise<TokenSet | null> {
+  const body = new URLSearchParams();
+  body.append('grant_type', 'authorization_code');
+  body.append('code', code);
+  body.append('redirect_uri', redirectUri);
+  body.append('code_verifier', codeVerifier);
+
+  const basicAuth = btoa(`${CLIENT_ID}:${CLIENT_SECRET}`);
+
+  try {
+    const res = await fetch(`${AUTH_BASE}/oauth2/token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${basicAuth}`,
+      },
+      body: body.toString(),
+    });
+
+    if (!res.ok) {
+      return null;
+    }
+
+    const data = await res.json();
+    return {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+      idToken: data.id_token,
+      expiresIn: data.expires_in,
+      scope: data.scope,
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function refreshAccessToken(
+  refreshToken: string
+): Promise<TokenSet | null> {
+  const body = new URLSearchParams();
+  body.append('grant_type', 'refresh_token');
+  body.append('refresh_token', refreshToken);
+
+  const basicAuth = btoa(`${CLIENT_ID}:${CLIENT_SECRET}`);
+
+  try {
+    const res = await fetch(`${AUTH_BASE}/oauth2/token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${basicAuth}`,
+      },
+      body: body.toString(),
+    });
+
+    if (!res.ok) {
+      return null;
+    }
+
+    const data = await res.json();
+    return {
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token || refreshToken,
+      idToken: data.id_token,
+      expiresIn: data.expires_in,
+      scope: data.scope,
+    };
+  } catch {
+    return null;
+  }
+}
