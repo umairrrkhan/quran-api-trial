@@ -1,0 +1,13 @@
+{
+  "name": "qf-auth-proxy",
+  "version": "1.0.0",
+  "main": "index.js",
+  "engines": {
+    "node": "20"
+  },
+  "dependencies": {
+    "firebase-functions": "^6.3.2",
+    "firebase-admin": "^13.2.0"
+  },
+  "private": true
+}

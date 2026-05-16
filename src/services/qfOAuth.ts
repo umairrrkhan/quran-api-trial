@@ -25,9 +25,7 @@ export interface QfUser {
   last_name?: string;
 }
 
-const AUTH_BASE = 'https://prelive-oauth2.quran.foundation';
 const CLIENT_ID = '8970e1e8-abdd-4f49-8f0e-94919142f12b';
-const CLIENT_SECRET = 'w8kuv_csjmI_pyw_r~kefEBsX6';
 
 function base64url(buf: ArrayBuffer): string {
   const bytes = new Uint8Array(buf);
@@ -60,6 +58,8 @@ export async function generatePkcePair(): Promise<PkcePair> {
   return { codeVerifier, codeChallenge };
 }
 
+const AUTH_BASE = 'https://prelive-oauth2.quran.foundation';
+
 export async function buildLoginUrl(): Promise<{ url: string; session: AuthSession }> {
   const redirectUri = `${window.location.origin}/callback`;
   const { codeVerifier, codeChallenge } = await generatePkcePair();
@@ -70,7 +70,7 @@ export async function buildLoginUrl(): Promise<{ url: string; session: AuthSessi
   params.set('response_type', 'code');
   params.set('client_id', CLIENT_ID);
   params.set('redirect_uri', redirectUri);
-  params.set('scope', 'openid offline_access user collection');
+  params.set('scope', 'openid offline_access');
   params.set('state', state);
   params.set('nonce', nonce);
   params.set('code_challenge', codeChallenge);
@@ -78,7 +78,6 @@ export async function buildLoginUrl(): Promise<{ url: string; session: AuthSessi
 
   const url = `${AUTH_BASE}/oauth2/auth?${params.toString()}`;
   const session: AuthSession = { state, nonce, codeVerifier, redirectUri };
-
   return { url, session };
 }
 
@@ -87,34 +86,21 @@ export async function exchangeCodeForTokens(
   codeVerifier: string,
   redirectUri: string
 ): Promise<TokenSet | null> {
-  const body = new URLSearchParams();
-  body.append('grant_type', 'authorization_code');
-  body.append('code', code);
-  body.append('redirect_uri', redirectUri);
-  body.append('code_verifier', codeVerifier);
-
-  const basicAuth = btoa(`${CLIENT_ID}:${CLIENT_SECRET}`);
-
   try {
-    const res = await fetch(`${AUTH_BASE}/oauth2/token`, {
+    const res = await fetch('/api/exchange', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${basicAuth}`,
-      },
-      body: body.toString(),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ code, codeVerifier, redirectUri }),
     });
 
-    if (!res.ok) {
-      return null;
-    }
+    if (!res.ok) return null;
 
     const data = await res.json();
     return {
-      accessToken: data.access_token,
-      refreshToken: data.refresh_token,
-      idToken: data.id_token,
-      expiresIn: data.expires_in,
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken,
+      idToken: data.idToken,
+      expiresIn: data.expiresIn,
       scope: data.scope,
     };
   } catch {
@@ -122,35 +108,22 @@ export async function exchangeCodeForTokens(
   }
 }
 
-export async function refreshAccessToken(
-  refreshToken: string
-): Promise<TokenSet | null> {
-  const body = new URLSearchParams();
-  body.append('grant_type', 'refresh_token');
-  body.append('refresh_token', refreshToken);
-
-  const basicAuth = btoa(`${CLIENT_ID}:${CLIENT_SECRET}`);
-
+export async function refreshAccessToken(refreshToken: string): Promise<TokenSet | null> {
   try {
-    const res = await fetch(`${AUTH_BASE}/oauth2/token`, {
+    const res = await fetch('/api/refresh', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/x-www-form-urlencoded',
-        'Authorization': `Basic ${basicAuth}`,
-      },
-      body: body.toString(),
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
     });
 
-    if (!res.ok) {
-      return null;
-    }
+    if (!res.ok) return null;
 
     const data = await res.json();
     return {
-      accessToken: data.access_token,
-      refreshToken: data.refresh_token || refreshToken,
-      idToken: data.id_token,
-      expiresIn: data.expires_in,
+      accessToken: data.accessToken,
+      refreshToken: data.refreshToken || refreshToken,
+      idToken: data.idToken,
+      expiresIn: data.expiresIn,
       scope: data.scope,
     };
   } catch {

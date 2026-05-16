@@ -15,8 +15,9 @@ const AuthCallbackPage: React.FC = () => {
     const error = params.get('error');
 
     if (error) {
+      const desc = params.get('error_description') || '';
       setStatus('error');
-      setErrorMsg('Authentication was denied or failed.');
+      setErrorMsg(desc ? `${error}: ${desc}` : `Error: ${error}`);
       return;
     }
 

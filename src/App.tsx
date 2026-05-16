@@ -10,6 +10,7 @@ import AboutPage from './pages/AboutPage';
 import ProgressPage from './pages/ProgressPage';
 import BookmarksPage from './pages/BookmarksPage';
 import AuthCallbackPage from './pages/AuthCallbackPage';
+import ProfilePage from './pages/ProfilePage';
 import './styles/globals.css';
 
 const App: React.FC = () => {
@@ -27,6 +28,7 @@ const App: React.FC = () => {
               <Route path="/progress" element={<ProgressPage />} />
               <Route path="/bookmarks" element={<BookmarksPage />} />
               <Route path="/callback" element={<AuthCallbackPage />} />
+              <Route path="/profile" element={<ProfilePage />} />
             </Routes>
           </main>
           <Footer />

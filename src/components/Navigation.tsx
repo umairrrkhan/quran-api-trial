@@ -91,6 +91,12 @@ const Navigation: React.FC = () => {
                     <div className="user-dropdown-header">
                       <strong>{user.first_name || user.email || 'User'}</strong>
                     </div>
+                    <Link to="/profile" className="user-dropdown-item" onClick={() => setShowUserMenu(false)}>
+                      Profile
+                    </Link>
+                    <button className="user-dropdown-item" onClick={() => { login(); setShowUserMenu(false); }}>
+                      Switch Account
+                    </button>
                     <button className="user-dropdown-item" onClick={logout}>
                       Sign Out
                     </button>
