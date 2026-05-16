@@ -94,9 +94,6 @@ const Navigation: React.FC = () => {
                     <Link to="/profile" className="user-dropdown-item" onClick={() => setShowUserMenu(false)}>
                       Profile
                     </Link>
-                    <button className="user-dropdown-item" onClick={() => { login(); setShowUserMenu(false); }}>
-                      Switch Account
-                    </button>
                     <button className="user-dropdown-item" onClick={logout}>
                       Sign Out
                     </button>
@@ -152,6 +149,11 @@ const Navigation: React.FC = () => {
             <Link to="/about" onClick={() => setIsMenuOpen(false)}>
               About
             </Link>
+            {isAuthenticated && (
+              <Link to="/profile" className="mobile-menu-link" onClick={() => setIsMenuOpen(false)}>
+                Profile
+              </Link>
+            )}
             {isAuthenticated ? (
               <button
                 className="mobile-auth-btn"

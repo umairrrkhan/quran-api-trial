@@ -81,3 +81,26 @@
   width: 100%;
   justify-content: center;
 }
+
+@media (max-width: 640px) {
+  .profile-page {
+    padding: 24px 16px;
+    min-height: 70vh;
+  }
+  .profile-card {
+    padding: 32px 24px;
+  }
+  .profile-avatar,
+  .profile-avatar-placeholder {
+    width: 64px;
+    height: 64px;
+    font-size: 1.6rem;
+    margin-bottom: 16px;
+  }
+  .profile-card h2 {
+    font-size: 1.3rem;
+  }
+  .profile-email {
+    font-size: 0.85rem;
+  }
+}

@@ -32,7 +32,6 @@ const ProfilePage: React.FC = () => {
         </div>
 
         <div className="profile-actions">
-          <button className="btn btn-outline" onClick={login}>Switch Account</button>
           <button className="btn btn-primary" onClick={logout}>Sign Out</button>
         </div>
       </div>

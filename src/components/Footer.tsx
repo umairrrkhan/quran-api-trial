@@ -61,11 +61,12 @@ const Footer: React.FC = () => {
             <motion.div className="footer-col" variants={fadeUp}>
               <h4 className="footer-col-title">Explore</h4>
               <motion.div className="footer-col-links" variants={stagger}>
-                {[
-                  { to: '/', label: 'Home' },
-                  { to: '/progress', label: 'Progress' },
-                  { to: '/about', label: 'About' },
-                ].map((link) => (
+                  {[
+                    { to: '/', label: 'Home' },
+                    { to: '/progress', label: 'Progress' },
+                    { to: '/bookmarks', label: 'Bookmarks' },
+                    { to: '/about', label: 'About' },
+                  ].map((link) => (
                   <motion.div key={link.to} variants={slideUp}>
                     <Link to={link.to} className="footer-link">
                       <span className="footer-link-text">{link.label}</span>
