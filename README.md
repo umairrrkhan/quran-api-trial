@@ -1,96 +1,62 @@
-# Quran Journey Tracker
+# QuranHub
 
-> Built for the **Quran Foundation Hackathon** — then extended far beyond.
+> Built for the **Quran Foundation Hackathon**.
 
-A full-featured Quran companion app that lets you browse all 114 surahs, read verses with AI-powered explanations, track your reading progress, and export your journey.
+Browse 114 surahs, read verses with AI explanations, track progress, and sync data via Quran Foundation OAuth.
 
 ## Tech Stack
 
-| Technology | Purpose |
-|-----------|---------|
-| **[Quran Foundation API](https://api.quran.com)** | All Quranic content — chapters, verses, Arabic text, English translations |
-| **[DeepSeek API](https://deepseek.com)** | AI-powered verse explanations with context, themes, and insights |
-| **React 18 + TypeScript** | Frontend framework with full type safety |
-| **Framer Motion** | Smooth animations, page transitions, and micro-interactions |
-| **jsPDF** | Native programmatic PDF generation (no DOM rendering) |
-| **React Router v7** | Client-side routing between Home, Progress, and About pages |
-| **localStorage** | Client-side persistence of reading progress |
+React 18, TypeScript, Framer Motion, Firebase Hosting + Functions, Quran Foundation API, DeepSeek API
 
-## Features
+## Workflow
 
-- **114 Surahs** — Browse all chapters with Arabic text and English translations
-- **AI Explanations** — Get deep context, themes, and explanations for any verse via DeepSeek
-- **Progress Tracking** — Mark surahs as completed, track overall progress
-- **Completion Map** — Visual 19-column grid showing all surahs completed/not started
-- **Surah Filters** — Filter the surah list by All, Completed, or Not Completed
-- **Emotion-Based Search** — Type how you feel and get AI-recommended surahs
-- **Export Data** — Download your progress as CSV, TXT, or a beautifully styled PDF
-- **Daily Motivation** — Rotating Quranic verses and hadith to encourage daily reading
-- **Streak Tracking** — Current streak, longest streak, and last read date to build habits
-- **Bookmarks & Notes** — Save meaningful verses with personal reflections and AI explanations
-- **Verse of the Day** — Daily rotating Quranic verses on the home page
-- **Animated Lantern** — Visual progress representation with an Islamic lantern motif
-- **Modern Footer** — Dark-themed animated footer with wave separator, social links, and CTA
-- **Fully Responsive** — Works on desktop, tablet, and mobile
+```
+User clicks Sign In → OAuth2 PKCE flow → Quran Foundation login → 
+Redirects back → Token exchanged via Firebase Function → 
+User APIs called with x-auth-token + x-client-id
+```
 
-## Getting Started
+- Auth: Authorization Code + PKCE + OpenID Connect (confidential client)
+- Backend: Firebase Cloud Function proxies token exchange & refresh
+- Tokens: Auto-refresh on expiry, stored in sessionStorage
+- APIs: Quran Foundation User APIs for synced reading progress
+
+## Setup
 
 ```bash
-# Install dependencies
 npm install
-
-# Start development server
-npm start
-
-# Build for production
-npm run build
+npm start         # local dev at localhost:3000
+npm run build     # production build
+firebase deploy   # deploy to Firebase
 ```
 
 ## Project Structure
 
 ```
 src/
-├── components/           # Reusable UI components
-│   ├── sections/         # Page sections (Hero, Chapters, Search)
-│   ├── Navigation.tsx
-│   ├── Footer.tsx
-│   ├── SurahModal.tsx
-│   └── ProgressJourney.tsx
-├── pages/                # Route pages
-│   ├── HomePage.tsx
-│   ├── ProgressPage.tsx
-│   └── AboutPage.tsx
-├── context/              # React Context providers
-│   ├── ProgressContext.tsx
-│   └── BookmarkContext.tsx
-├── hooks/                # Custom hooks
-│   ├── useReadingProgress.ts
-│   ├── useBookmarks.ts
-│   ├── useLocalStorage.ts
-│   └── useAnimations.ts
-├── services/             # API clients (Quran API, DeepSeek API)
-├── types/                # TypeScript interfaces
-└── styles/               # Global CSS
+├── components/     # Navigation, Footer, SurahModal, sections
+├── pages/          # Home, Progress, Bookmarks, About, Profile, Callback
+├── context/        # Auth, Progress, Bookmark providers
+├── services/       # qfOAuth.ts, quranApi.ts, deepseekApi.ts
+├── hooks/          # Custom React hooks
+├── types/          # TypeScript interfaces
+└── styles/         # Global CSS
+functions/          # Firebase Cloud Functions for OAuth proxy
 ```
 
-## APIs Used
+## OAuth Flow
 
-### Quran Foundation API
-- `GET /api/v4/chapters` — Fetch all 114 surahs
-- `GET /api/v4/chapters/:id/verses` — Fetch verses for a specific surah
-
-### DeepSeek API
-- Verse explanations with context, themes, and detailed breakdowns
-- Powered by the `deepseek-v4-flash` model
+| Step | Description |
+|------|-------------|
+| Login | PKCE challenge + state/nonce → redirected to Quran Foundation |
+| Callback | Code exchanged via Firebase Function with client_secret |
+| Refresh | Access token auto-refreshed before expiry |
+| Headers | User APIs called with `x-auth-token` + `x-client-id` |
 
 ## Deployment
 
-The app is deployed on **Vercel**. Any push to the `master` branch triggers a new deployment.
-
-## License
-
-MIT
+Hosted on **Firebase** with custom domain `umair.sbs`.
 
 ---
 
-*"The best of you are those who learn the Quran and teach it." — Prophet Muhammad (PBUH)*
+*"The best of you are those who learn the Quran and teach it."*
