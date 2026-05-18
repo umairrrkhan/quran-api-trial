@@ -17,7 +17,7 @@ async function userApi<T>(
     const params: Record<string, string> = { endpoint, accessToken: token, method: options?.method || 'GET' };
     if (options?.body) params.body = JSON.stringify(options.body);
 
-    const res = await fetch('/api/user', {
+    const res = await fetch('/api/exchange', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams(params).toString(),

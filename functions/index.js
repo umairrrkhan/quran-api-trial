@@ -19,10 +19,31 @@ async function proxy(bodyMap) {
 
 exports.exchange = functions.https.onRequest(async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
-  if (req.method === 'OPTIONS') { res.status(204).end(); return; }
+  if (req.method === 'OPTIONS') {
+    res.set('Access-Control-Allow-Methods', 'POST');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    res.status(204).end(); return;
+  }
   try {
-    const { code, codeVerifier, redirectUri } = req.body || {};
-    if (!code || !codeVerifier || !redirectUri) { res.status(400).json({ error: 'Missing fields' }); return; }
+    const body = req.body || {};
+
+    // User API proxy (when endpoint is provided)
+    if (body.endpoint && body.accessToken) {
+      const opts = { method: body.method || 'GET', headers: { 'x-auth-token': body.accessToken, 'x-client-id': CLIENT_ID } };
+      let b = body.body;
+      if (typeof b === 'string' && b) { try { b = JSON.parse(b); } catch {} }
+      if (b && body.method !== 'GET') { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(b); }
+      const apiRes = await fetch(`${API_BASE}${body.endpoint}`, opts);
+      const json = await apiRes.json();
+      res.status(apiRes.status).json(json);
+      return;
+    }
+
+    // OAuth token exchange
+    const { code, codeVerifier, redirectUri } = body;
+    if (!code || !codeVerifier || !redirectUri) {
+      res.status(400).json({ error: 'Missing fields' }); return;
+    }
     const r = await proxy({ grant_type: 'authorization_code', code, redirect_uri: redirectUri, code_verifier: codeVerifier });
     if (!r.ok) { res.status(500).json({ error: 'Exchange failed' }); return; }
     res.json({ accessToken: r.data.access_token, refreshToken: r.data.refresh_token, idToken: r.data.id_token, expiresIn: r.data.expires_in, scope: r.data.scope });
@@ -31,27 +52,16 @@ exports.exchange = functions.https.onRequest(async (req, res) => {
 
 exports.refresh = functions.https.onRequest(async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
-  if (req.method === 'OPTIONS') { res.status(204).end(); return; }
+  if (req.method === 'OPTIONS') {
+    res.set('Access-Control-Allow-Methods', 'POST');
+    res.set('Access-Control-Allow-Headers', 'Content-Type');
+    res.status(204).end(); return;
+  }
   try {
     const { refreshToken } = req.body || {};
     if (!refreshToken) { res.status(400).json({ error: 'Missing refreshToken' }); return; }
     const r = await proxy({ grant_type: 'refresh_token', refresh_token: refreshToken });
     if (!r.ok) { res.status(500).json({ error: 'Refresh failed' }); return; }
     res.json({ accessToken: r.data.access_token, refreshToken: r.data.refresh_token || refreshToken, idToken: r.data.id_token, expiresIn: r.data.expires_in, scope: r.data.scope });
-  } catch (e) { res.status(500).json({ error: 'Error' }); }
-});
-
-exports.user = functions.https.onRequest(async (req, res) => {
-  res.set('Access-Control-Allow-Origin', '*');
-  if (req.method === 'OPTIONS') { res.status(204).end(); return; }
-  try {
-    const { endpoint, accessToken, method, body: bodyRaw } = req.body || {};
-    if (!endpoint || !accessToken) { res.status(400).json({ error: 'Missing endpoint or accessToken' }); return; }
-    const opts = { method: method || 'GET', headers: { 'x-auth-token': accessToken, 'x-client-id': CLIENT_ID } };
-    let body = bodyRaw;
-    if (typeof body === 'string' && body) { try { body = JSON.parse(body); } catch {} }
-    if (body && method !== 'GET') { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
-    const apiRes = await fetch(`${API_BASE}${endpoint}`, opts);
-    res.status(apiRes.status).json(await apiRes.json());
   } catch (e) { res.status(500).json({ error: 'Error' }); }
 });

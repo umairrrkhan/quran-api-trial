@@ -19,10 +19,6 @@
         "function": "refresh"
       },
       {
-        "source": "/api/user",
-        "function": "user"
-      },
-      {
         "source": "**",
         "destination": "/index.html"
       }
