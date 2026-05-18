@@ -11,7 +11,7 @@ const fadeUp = {
 };
 
 const BookmarksPage: React.FC = () => {
-  const { bookmarks, removeBookmark, updateNote, bookmarksCount } = useBookmark();
+  const { bookmarks, loading, error, removeBookmark, updateNote, bookmarksCount } = useBookmark();
   const [editingNote, setEditingNote] = useState<string | null>(null);
   const [noteText, setNoteText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -99,7 +99,15 @@ const BookmarksPage: React.FC = () => {
 
       <section className="bm-content">
         <div className="container">
-          {bookmarksCount === 0 ? (
+          {loading ? (
+            <div className="bm-loading">Loading bookmarks...</div>
+          ) : error ? (
+            <div className="bm-error">
+              <h3>Could not load bookmarks</h3>
+              <p>{error}</p>
+              <Link to="/" className="bm-empty-btn">Browse Surahs</Link>
+            </div>
+          ) : bookmarksCount === 0 ? (
             <motion.div className="bm-empty" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
               <div className="bm-empty-icon">
                 <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
