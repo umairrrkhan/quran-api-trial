@@ -2,8 +2,6 @@ import React, { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useBookmark } from '../context/BookmarkContext';
-import { useAuth } from '../context/AuthContext';
-import { getBookmarks } from '../services/qfUserApi';
 import { getVerseExplanation } from '../services/deepseekApi';
 import './BookmarksPage.css';
 
@@ -14,9 +12,6 @@ const fadeUp = {
 
 const BookmarksPage: React.FC = () => {
   const { bookmarks, removeBookmark, updateNote, bookmarksCount } = useBookmark();
-  const { isAuthenticated, getAccessToken } = useAuth();
-  const [syncing, setSyncing] = useState(false);
-  const [syncMsg, setSyncMsg] = useState('');
   const [editingNote, setEditingNote] = useState<string | null>(null);
   const [noteText, setNoteText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -140,25 +135,9 @@ const BookmarksPage: React.FC = () => {
               <div className="bm-controls">
                 <span className="bm-controls-count">{filteredBookmarks.length} bookmark{filteredBookmarks.length !== 1 ? 's' : ''} in {groupedBookmarks.length} surah{groupedBookmarks.length !== 1 ? 's' : ''}</span>
                 <div className="bm-controls-actions">
-                  {isAuthenticated && (
-                    <button className="bm-control-btn bm-sync-btn" onClick={async () => {
-                      setSyncing(true); setSyncMsg('');
-                      const token = await getAccessToken();
-                      if (!token) { setSyncMsg('Not signed in'); setSyncing(false); return; }
-                      const res = await getBookmarks(token);
-                      if (res.data) setSyncMsg(`Found ${res.data.length} cloud bookmarks`);
-                      else if (res.error?.includes('unauthorized') || res.error?.includes('forbidden')) setSyncMsg('Cloud sync: scope not approved');
-                      else setSyncMsg(res.error || 'Sync failed');
-                      setSyncing(false);
-                      setTimeout(() => setSyncMsg(''), 3000);
-                    }} disabled={syncing}>
-                      {syncing ? 'Syncing...' : 'Sync from Cloud'}
-                    </button>
-                  )}
                   <button className="bm-control-btn" onClick={expandAll}>Expand all</button>
                   <button className="bm-control-btn" onClick={collapseAll}>Collapse all</button>
                 </div>
-                {syncMsg && <span className="bm-sync-msg">{syncMsg}</span>}
               </div>
 
               <motion.div className="bm-groups" initial="hidden" animate="show">
