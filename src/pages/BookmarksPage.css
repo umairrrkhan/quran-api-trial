@@ -69,6 +69,10 @@
 .bm-control-btn { padding: 5px 14px; border-radius: 50px; border: 1px solid var(--border-glass); background: white; color: var(--text-muted); font-size: 0.75rem; font-weight: 500; cursor: pointer; transition: all 0.2s ease; font-family: 'Inter', sans-serif; }
 .bm-control-btn:hover { border-color: var(--gold); color: var(--gold-dark); }
 
+.bm-sync-btn { color: var(--gold-dark); border-color: rgba(212,175,55,0.3); }
+.bm-sync-btn:disabled { opacity: 0.5; cursor: wait; }
+.bm-sync-msg { display: block; font-size: 0.75rem; color: var(--text-muted); margin-top: 6px; text-align: center; }
+
 /* ===== GROUPS ===== */
 .bm-groups { display: flex; flex-direction: column; gap: 8px; }
 

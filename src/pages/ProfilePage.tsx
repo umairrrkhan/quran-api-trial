@@ -1,9 +1,27 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { getUserProfile, getCollections } from '../services/qfUserApi';
 import './ProfilePage.css';
 
 const ProfilePage: React.FC = () => {
-  const { user, isAuthenticated, login, logout } = useAuth();
+  const { user, isAuthenticated, login, logout, getAccessToken } = useAuth();
+  const [profile, setProfile] = useState<any>(null);
+  const [collections, setCollections] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    setLoading(true);
+    getAccessToken().then(token => {
+      if (!token) { setLoading(false); return; }
+      Promise.all([getUserProfile(token), getCollections(token)]).then(([p, c]) => {
+        if (p.data) setProfile(p.data);
+        if (c.data) setCollections(c.data);
+        setLoading(false);
+      }).catch(() => { setLoading(false); setError('Could not load profile data'); });
+    });
+  }, [isAuthenticated]);
 
   if (!isAuthenticated || !user) {
     return (
@@ -29,6 +47,16 @@ const ProfilePage: React.FC = () => {
         {user.email && <p className="profile-email">{user.email}</p>}
         <div className="profile-id">
           <span>QF ID: {user.sub?.slice(0, 12)}...</span>
+        </div>
+
+        <div className="profile-stats">
+          {loading && <p className="profile-loading">Loading cloud data...</p>}
+          {error && <p className="profile-error">{error}</p>}
+          {profile && (
+            <div className="profile-stat-row">
+              <span>Collections: {collections.length}</span>
+            </div>
+          )}
         </div>
 
         <div className="profile-actions">

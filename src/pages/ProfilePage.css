@@ -82,6 +82,28 @@
   justify-content: center;
 }
 
+.profile-stats {
+  margin: 16px 0;
+}
+
+.profile-loading {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.profile-error {
+  font-size: 0.8rem;
+  color: #EF4444;
+}
+
+.profile-stat-row {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+
 @media (max-width: 640px) {
   .profile-page {
     padding: 24px 16px;
