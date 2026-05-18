@@ -96,3 +96,18 @@ export async function addActivityDay(accessToken: string, data: { ranges: string
 export async function getStreaks(accessToken?: string): Promise<UserApiResponse<QfStreak[]>> {
   return userApi('/v1/streaks?type=QURAN', { accessToken });
 }
+
+export async function createBookmark(accessToken: string, verseKey: string, note?: string): Promise<UserApiResponse<any>> {
+  return userApi('/auth/v1/bookmarks', {
+    method: 'POST',
+    accessToken,
+    body: { verse_key: verseKey, note: note || '' },
+  });
+}
+
+export async function deleteBookmark(accessToken: string, bookmarkId: string): Promise<UserApiResponse<any>> {
+  return userApi(`/auth/v1/bookmarks/${bookmarkId}`, {
+    method: 'DELETE',
+    accessToken,
+  });
+}

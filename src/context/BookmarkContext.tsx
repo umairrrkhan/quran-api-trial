@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useEffect } from 'react';
+import React, { createContext, useContext, useCallback } from 'react';
 import { useBookmarks } from '../hooks/useBookmarks';
 import { useAuth } from './AuthContext';
-import { getBookmarks } from '../services/qfUserApi';
+import { getBookmarks, createBookmark, deleteBookmark } from '../services/qfUserApi';
 import type { Bookmark } from '../types/quran';
 
 interface BookmarkContextType {
@@ -18,39 +18,46 @@ const BookmarkContext = createContext<BookmarkContextType | null>(null);
 export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const bookmarksData = useBookmarks();
+  const bm = useBookmarks();
   const { isAuthenticated, getAccessToken } = useAuth();
 
-  useEffect(() => {
+  const addBookmark = useCallback((bookmark: Bookmark) => {
+    bm.addBookmark(bookmark);
     if (!isAuthenticated) return;
     getAccessToken().then(token => {
-      if (!token) return;
-      getBookmarks(token).then(res => {
-        if (res.data && res.data.length > 0) {
-          const existing = bookmarksData.bookmarks;
-          const existingKeys = new Set(existing.map(b => b.verseKey));
-          let added = 0;
-          for (const cb of res.data) {
-            if (!existingKeys.has(cb.verseKey)) {
-              existingKeys.add(cb.verseKey);
-              added++;
-            }
-          }
-        }
-      });
+      if (token) createBookmark(token, bookmark.verseKey, bookmark.note);
     });
-  }, [isAuthenticated]);
+  }, [bm, isAuthenticated, getAccessToken]);
+
+  const removeBookmark = useCallback((verseKey: string) => {
+    bm.removeBookmark(verseKey);
+    if (!isAuthenticated) return;
+    getAccessToken().then(async token => {
+      if (!token) return;
+      const res = await getBookmarks(token);
+      if (res.data) {
+        const cloud = res.data.find((b: any) => b.verseKey === verseKey || b.verse_key === verseKey);
+        if (cloud?.id) deleteBookmark(token, cloud.id);
+      }
+    });
+  }, [bm, isAuthenticated, getAccessToken]);
 
   return (
-    <BookmarkContext.Provider value={bookmarksData}>
+    <BookmarkContext.Provider value={{
+      bookmarks: bm.bookmarks,
+      addBookmark,
+      removeBookmark,
+      updateNote: bm.updateNote,
+      isBookmarked: bm.isBookmarked,
+      bookmarksCount: bm.bookmarksCount,
+    }}>
       {children}
     </BookmarkContext.Provider>
   );
 };
 
 export const useBookmark = (): BookmarkContextType => {
-  const context = useContext(BookmarkContext);
-  if (!context)
-    throw new Error('useBookmark must be used within BookmarkProvider');
-  return context;
+  const ctx = useContext(BookmarkContext);
+  if (!ctx) throw new Error('useBookmark must be used within BookmarkProvider');
+  return ctx;
 };
