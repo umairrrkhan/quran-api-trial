@@ -1,10 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { exchangeAndStore } from '../context/AuthContext';
 import './AuthCallbackPage.css';
 
 const AuthCallbackPage: React.FC = () => {
-  const navigate = useNavigate();
   const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -53,13 +51,13 @@ const AuthCallbackPage: React.FC = () => {
           return;
         }
         setStatus('success');
-        setTimeout(() => navigate('/', { replace: true }), 1000);
+        setTimeout(() => { window.location.href = '/'; }, 1000);
       })
       .catch(() => {
         setStatus('error');
         setErrorMsg('An unexpected error occurred.');
       });
-  }, [navigate]);
+  }, []);
 
   return (
     <div className="auth-callback-page">
@@ -83,7 +81,7 @@ const AuthCallbackPage: React.FC = () => {
             <div className="auth-error-icon">!</div>
             <h2>Sign in failed</h2>
             <p>{errorMsg}</p>
-            <button className="btn btn-primary" onClick={() => navigate('/', { replace: true })}>
+            <button className="btn btn-primary" onClick={() => { window.location.href = '/'; }}>
               Go Home
             </button>
           </>
