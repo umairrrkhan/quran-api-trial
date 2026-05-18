@@ -14,14 +14,13 @@ async function userApi<T>(
   if (!token) return { error: 'Not authenticated' };
 
   try {
+    const params: Record<string, string> = { endpoint, accessToken: token, method: options?.method || 'GET' };
+    if (options?.body) params.body = JSON.stringify(options.body);
+
     const res = await fetch('/api/user', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({
-        endpoint,
-        accessToken: token,
-        method: options?.method || 'GET',
-      }).toString(),
+      body: new URLSearchParams(params).toString(),
     });
     const data = await res.json();
     if (!res.ok) return { error: data.error || 'API error' };
@@ -47,6 +46,26 @@ export interface QfCollection {
   createdAt: string;
 }
 
+export interface QfActivityDay {
+  id: string;
+  date: string;
+  progress: number;
+  type: string;
+  ranges: string[];
+  secondsRead: number;
+  versesRead: number;
+  mushafId: number;
+}
+
+export interface QfStreak {
+  id: string;
+  startDate: string;
+  endDate: string;
+  type: string;
+  status: string;
+  days: number;
+}
+
 export async function getBookmarks(accessToken?: string): Promise<UserApiResponse<QfBookmark[]>> {
   return userApi('/auth/v1/bookmarks', { accessToken });
 }
@@ -57,4 +76,23 @@ export async function getCollections(accessToken?: string): Promise<UserApiRespo
 
 export async function getUserProfile(accessToken?: string): Promise<UserApiResponse<QfUser>> {
   return userApi('/auth/v1/user', { accessToken });
+}
+
+export async function getActivityDays(accessToken?: string, from?: string, to?: string): Promise<UserApiResponse<QfActivityDay[]>> {
+  let endpoint = '/v1/activity-days?type=QURAN';
+  if (from) endpoint += `&from=${from}`;
+  if (to) endpoint += `&to=${to}`;
+  return userApi(endpoint, { accessToken });
+}
+
+export async function addActivityDay(accessToken: string, data: { ranges: string[]; seconds: number; date: string; mushafId?: number }): Promise<UserApiResponse<any>> {
+  return userApi('/v1/activity-days', {
+    method: 'POST',
+    accessToken,
+    body: { type: 'QURAN', ...data, mushafId: data.mushafId || 4 },
+  });
+}
+
+export async function getStreaks(accessToken?: string): Promise<UserApiResponse<QfStreak[]>> {
+  return userApi('/v1/streaks?type=QURAN', { accessToken });
 }

@@ -45,9 +45,11 @@ exports.user = functions.https.onRequest(async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') { res.status(204).end(); return; }
   try {
-    const { endpoint, accessToken, method, body } = req.body || {};
+    const { endpoint, accessToken, method, body: bodyRaw } = req.body || {};
     if (!endpoint || !accessToken) { res.status(400).json({ error: 'Missing endpoint or accessToken' }); return; }
     const opts = { method: method || 'GET', headers: { 'x-auth-token': accessToken, 'x-client-id': CLIENT_ID } };
+    let body = bodyRaw;
+    if (typeof body === 'string' && body) { try { body = JSON.parse(body); } catch {} }
     if (body && method !== 'GET') { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(body); }
     const apiRes = await fetch(`${API_BASE}${endpoint}`, opts);
     res.status(apiRes.status).json(await apiRes.json());
