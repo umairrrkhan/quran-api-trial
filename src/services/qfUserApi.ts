@@ -67,7 +67,7 @@ export interface QfStreak {
 }
 
 export async function getBookmarks(accessToken?: string): Promise<UserApiResponse<QfBookmark[]>> {
-  return userApi('/auth/v1/bookmarks', { accessToken });
+  return userApi('/v1/bookmarks?type=ayah&mushafId=4', { accessToken });
 }
 
 export async function getCollections(accessToken?: string): Promise<UserApiResponse<QfCollection[]>> {
@@ -97,16 +97,16 @@ export async function getStreaks(accessToken?: string): Promise<UserApiResponse<
   return userApi('/v1/streaks?type=QURAN', { accessToken });
 }
 
-export async function createBookmark(accessToken: string, verseKey: string, note?: string): Promise<UserApiResponse<any>> {
-  return userApi('/auth/v1/bookmarks', {
+export async function createBookmark(accessToken: string, surahId: number, verseNumber: number): Promise<UserApiResponse<any>> {
+  return userApi('/v1/bookmarks', {
     method: 'POST',
     accessToken,
-    body: { verse_key: verseKey, note: note || '' },
+    body: { key: surahId, type: 'ayah', verseNumber, mushafId: 4 },
   });
 }
 
 export async function deleteBookmark(accessToken: string, bookmarkId: string): Promise<UserApiResponse<any>> {
-  return userApi(`/auth/v1/bookmarks/${bookmarkId}`, {
+  return userApi(`/v1/bookmarks/${bookmarkId}`, {
     method: 'DELETE',
     accessToken,
   });

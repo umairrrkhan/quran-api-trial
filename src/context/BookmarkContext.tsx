@@ -25,7 +25,7 @@ export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({
     bm.addBookmark(bookmark);
     if (!isAuthenticated) return;
     getAccessToken().then(token => {
-      if (token) createBookmark(token, bookmark.verseKey, bookmark.note).catch(() => {});
+      if (token) createBookmark(token, bookmark.surahId, bookmark.verseNumber).catch(() => {});
     }).catch(() => {});
   }, [bm, isAuthenticated, getAccessToken]);
 
@@ -37,7 +37,10 @@ export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({
       try {
         const res = await getBookmarks(token);
         if (res.data) {
-          const cloud = res.data.find((b: any) => b.verseKey === verseKey || b.verse_key === verseKey);
+          const parts = verseKey.split(':');
+          const surahId = parseInt(parts[0]);
+          const verseNum = parseInt(parts[1]);
+          const cloud = (res.data as any[]).find((b: any) => b.key === surahId && b.verseNumber === verseNum);
           if (cloud?.id) deleteBookmark(token, cloud.id).catch(() => {});
         }
       } catch {}
