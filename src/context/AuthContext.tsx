@@ -158,11 +158,18 @@ export function exchangeAndStore(code: string, codeVerifier: string, redirectUri
   });
 }
 
-export { getStoredSession };
+export { getStoredSession, getStoredTokens };
 
 function getStoredSession(): AuthSession | null {
   try {
     const raw = sessionStorage.getItem(SESSION_KEY);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+
+function getStoredTokens(): TokenSet | null {
+  try {
+    const raw = sessionStorage.getItem(TOKEN_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch { return null; }
 }

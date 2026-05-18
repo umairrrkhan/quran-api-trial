@@ -70,7 +70,7 @@ export async function buildLoginUrl(): Promise<{ url: string; session: AuthSessi
   params.set('response_type', 'code');
   params.set('client_id', CLIENT_ID);
   params.set('redirect_uri', redirectUri);
-  params.set('scope', 'openid offline_access');
+  params.set('scope', 'openid offline_access bookmark collection note reading_session');
   params.set('state', state);
   params.set('nonce', nonce);
   params.set('code_challenge', codeChallenge);
@@ -89,8 +89,8 @@ export async function exchangeCodeForTokens(
   try {
     const res = await fetch('/api/exchange', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ code, codeVerifier, redirectUri }),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ code, codeVerifier, redirectUri }).toString(),
     });
 
     if (!res.ok) return null;
@@ -112,8 +112,8 @@ export async function refreshAccessToken(refreshToken: string): Promise<TokenSet
   try {
     const res = await fetch('/api/refresh', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ refreshToken }),
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ refreshToken }).toString(),
     });
 
     if (!res.ok) return null;
