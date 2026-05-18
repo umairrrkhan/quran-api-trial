@@ -147,6 +147,7 @@ const BookmarksPage: React.FC = () => {
                       if (!token) { setSyncMsg('Not signed in'); setSyncing(false); return; }
                       const res = await getBookmarks(token);
                       if (res.data) setSyncMsg(`Found ${res.data.length} cloud bookmarks`);
+                      else if (res.error?.includes('unauthorized') || res.error?.includes('forbidden')) setSyncMsg('Cloud sync: scope not approved');
                       else setSyncMsg(res.error || 'Sync failed');
                       setSyncing(false);
                       setTimeout(() => setSyncMsg(''), 3000);

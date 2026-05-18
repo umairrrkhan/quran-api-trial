@@ -23,7 +23,7 @@ async function userApi<T>(
       body: new URLSearchParams(params).toString(),
     });
     const data = await res.json();
-    if (!res.ok) return { error: data.error || 'API error' };
+    if (!res.ok) return { error: data.message || data.error_description || 'API error' };
     return { data };
   } catch {
     return { error: 'Network error' };

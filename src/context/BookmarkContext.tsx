@@ -25,8 +25,8 @@ export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({
     bm.addBookmark(bookmark);
     if (!isAuthenticated) return;
     getAccessToken().then(token => {
-      if (token) createBookmark(token, bookmark.verseKey, bookmark.note);
-    });
+      if (token) createBookmark(token, bookmark.verseKey, bookmark.note).catch(() => {});
+    }).catch(() => {});
   }, [bm, isAuthenticated, getAccessToken]);
 
   const removeBookmark = useCallback((verseKey: string) => {
@@ -34,12 +34,14 @@ export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({
     if (!isAuthenticated) return;
     getAccessToken().then(async token => {
       if (!token) return;
-      const res = await getBookmarks(token);
-      if (res.data) {
-        const cloud = res.data.find((b: any) => b.verseKey === verseKey || b.verse_key === verseKey);
-        if (cloud?.id) deleteBookmark(token, cloud.id);
-      }
-    });
+      try {
+        const res = await getBookmarks(token);
+        if (res.data) {
+          const cloud = res.data.find((b: any) => b.verseKey === verseKey || b.verse_key === verseKey);
+          if (cloud?.id) deleteBookmark(token, cloud.id).catch(() => {});
+        }
+      } catch {}
+    }).catch(() => {});
   }, [bm, isAuthenticated, getAccessToken]);
 
   return (
