@@ -71,7 +71,7 @@ export async function buildLoginUrl(): Promise<{ url: string; session: AuthSessi
   params.set('response_type', 'code');
   params.set('client_id', CLIENT_ID);
   params.set('redirect_uri', redirectUri);
-  params.set('scope', 'openid offline_access bookmark reading_session activity_day streak collection user');
+  params.set('scope', 'openid offline_access bookmark');
   params.set('state', state);
   params.set('nonce', nonce);
   params.set('code_challenge', codeChallenge);

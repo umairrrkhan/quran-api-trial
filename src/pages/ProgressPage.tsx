@@ -3,8 +3,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { useProgress } from '../context/ProgressContext';
 import { useBookmark } from '../context/BookmarkContext';
-import { useAuth } from '../context/AuthContext';
-import { getReadingSessions } from '../services/qfUserApi';
 import { fetchChapters } from '../services/quranApi';
 import type { Chapter } from '../types/quran';
 import jsPDF from 'jspdf';
@@ -53,31 +51,6 @@ const ProgressPage: React.FC = () => {
   const [exporting, setExporting] = useState<'csv' | 'txt' | 'pdf' | null>(null);
   const [showGoalInput, setShowGoalInput] = useState(false);
   const [goalInput, setGoalInput] = useState(String(dailyGoal));
-  const { isAuthenticated, getAccessToken } = useAuth();
-  const [latestSession, setLatestSession] = useState<{ chapterNumber: number; verseNumber: number; updatedAt: string } | null>(null);
-  const [sessionLoading, setSessionLoading] = useState(false);
-  const [sessionError, setSessionError] = useState('');
-
-  useEffect(() => {
-    if (!isAuthenticated) { setLatestSession(null); return; }
-    getAccessToken().then(async (token) => {
-      if (!token) return;
-      setSessionLoading(true);
-      setSessionError('');
-      const res = await getReadingSessions(token, 1);
-      if (res.error) {
-        setSessionError(res.error);
-        setSessionLoading(false);
-        return;
-      }
-      const raw: any = res.data;
-      const list: any[] = Array.isArray(raw) ? raw : (Array.isArray(raw?.data) ? raw.data : []);
-      if (list.length > 0) {
-        setLatestSession({ chapterNumber: list[0].chapterNumber, verseNumber: list[0].verseNumber, updatedAt: list[0].updatedAt });
-      }
-      setSessionLoading(false);
-    });
-  }, [isAuthenticated, getAccessToken]);
 
   const completedSurahs = useMemo(
     () => surahs.filter((id) => isSurahCompleted(id)),
@@ -726,45 +699,6 @@ const ProgressPage: React.FC = () => {
           </motion.div>
         </div>
       </section>
-
-      {isAuthenticated && (
-      <section className="pp-session-section">
-        <div className="container">
-          <motion.div className="pp-session-card" initial={{ opacity: 0, y: 30 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }} transition={{ duration: 0.6 }}>
-            <div className="pp-session-header">
-              <h3 className="pp-session-title">Reading Session</h3>
-              <p className="pp-session-desc">Your latest reading location synced from the reader</p>
-            </div>
-            <div className="pp-session-body">
-              {sessionLoading ? (
-                <div className="pp-session-loading">Loading session...</div>
-              ) : sessionError ? (
-                <div className="pp-session-error">
-                  <strong>Error:</strong> {sessionError}
-                </div>
-              ) : latestSession ? (
-                <div className="pp-session-data">
-                  <div className="pp-session-row">
-                    <span className="pp-session-label">Surah</span>
-                    <span className="pp-session-value">{getChapterName(latestSession.chapterNumber) || `Surah ${latestSession.chapterNumber}`}</span>
-                  </div>
-                  <div className="pp-session-row">
-                    <span className="pp-session-label">Verse</span>
-                    <span className="pp-session-value">{latestSession.verseNumber}</span>
-                  </div>
-                  <div className="pp-session-row">
-                    <span className="pp-session-label">Last Updated</span>
-                    <span className="pp-session-value">{formatDate(latestSession.updatedAt)}</span>
-                  </div>
-                </div>
-              ) : (
-                <div className="pp-session-empty">No reading sessions yet. Open a surah and start reading!</div>
-              )}
-            </div>
-          </motion.div>
-        </div>
-      </section>
-      )}
 
       <section className="pp-motivation-section">
         <div className="container">
