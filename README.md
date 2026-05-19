@@ -4,7 +4,7 @@
 
 ---
 
-## 10-Second Pitch
+## Intro
 
 QuranHub is a modern web app that lets you **read all 114 surahs** with Arabic text + English translation, **bookmark verses** synced to your Quran Foundation account, **track reading streaks**, and get **AI-generated explanations** for any verse — all secured with **OAuth2 + OpenID Connect**.
 
