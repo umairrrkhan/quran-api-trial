@@ -59,6 +59,7 @@ export async function generatePkcePair(): Promise<PkcePair> {
 }
 
 const AUTH_BASE = 'https://prelive-oauth2.quran.foundation';
+const FUNCTIONS_BASE = 'https://us-central1-sample-firebase-ai-appj-9c9fa.cloudfunctions.net';
 
 export async function buildLoginUrl(): Promise<{ url: string; session: AuthSession }> {
   const redirectUri = `${window.location.origin}/callback`;
@@ -88,7 +89,7 @@ export async function exchangeCodeForTokens(
   redirectUri: string
 ): Promise<TokenSet | null> {
   try {
-    const res = await fetch('/api/exchange', {
+    const res = await fetch(`${FUNCTIONS_BASE}/exchange`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ code, codeVerifier, redirectUri }).toString(),
@@ -111,7 +112,7 @@ export async function exchangeCodeForTokens(
 
 export async function refreshAccessToken(refreshToken: string): Promise<TokenSet | null> {
   try {
-    const res = await fetch('/api/refresh', {
+    const res = await fetch(`${FUNCTIONS_BASE}/refresh`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ refreshToken }).toString(),

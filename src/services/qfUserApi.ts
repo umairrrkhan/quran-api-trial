@@ -1,5 +1,7 @@
 import type { QfUser, TokenSet } from './qfOAuth';
 
+const FUNCTIONS_BASE = 'https://us-central1-sample-firebase-ai-appj-9c9fa.cloudfunctions.net';
+
 interface UserApiResponse<T> {
   data?: T;
   error?: string;
@@ -23,7 +25,7 @@ async function userApi<T>(
     const params: Record<string, string> = { endpoint, accessToken: token, method: options?.method || 'GET' };
     if (options?.body) params.body = JSON.stringify(options.body);
 
-    const res = await fetch('/api/exchange', {
+    const res = await fetch(`${FUNCTIONS_BASE}/exchange`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams(params).toString(),
