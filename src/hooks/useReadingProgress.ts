@@ -49,7 +49,7 @@ export function useReadingProgress() {
     [completedCount]
   );
 
-  const todayStr = useMemo(() => new Date().toISOString().split('T')[0], []);
+  const todayStr = new Date().toISOString().split('T')[0];
 
   const todayVerses = useMemo(() => {
     return Object.values(records).reduce((sum, r) => {
@@ -58,7 +58,7 @@ export function useReadingProgress() {
       }
       return sum;
     }, 0);
-  }, [records, todayStr]);
+  }, [records]);
 
   const todayGoalMet = useMemo(() => todayVerses >= dailyGoal, [todayVerses, dailyGoal]);
 
