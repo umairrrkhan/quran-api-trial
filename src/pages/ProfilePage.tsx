@@ -21,7 +21,7 @@ const ProfilePage: React.FC = () => {
         setLoading(false);
       }).catch(() => { setLoading(false); setError('Could not load profile data'); });
     });
-  }, [isAuthenticated]);
+  }, [isAuthenticated, getAccessToken]);
 
   if (!isAuthenticated || !user) {
     return (

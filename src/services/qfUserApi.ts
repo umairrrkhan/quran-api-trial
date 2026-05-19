@@ -1,9 +1,15 @@
-import type { QfUser } from './qfOAuth';
-import { getStoredTokens } from '../context/AuthContext';
+import type { QfUser, TokenSet } from './qfOAuth';
 
 interface UserApiResponse<T> {
   data?: T;
   error?: string;
+}
+
+function getStoredTokens(): TokenSet | null {
+  try {
+    const raw = localStorage.getItem('qf_tokens');
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
 }
 
 async function userApi<T>(
@@ -74,6 +80,13 @@ export interface QfReadingSession {
   versesRead?: number;
 }
 
+export interface QfSimpleReadingSession {
+  id: string;
+  chapterNumber: number;
+  verseNumber: number;
+  updatedAt: string;
+}
+
 export async function getBookmarks(accessToken?: string): Promise<UserApiResponse<QfBookmark[]>> {
   return userApi('/auth/v1/bookmarks?type=ayah&mushafId=4&first=50', { accessToken });
 }
@@ -135,14 +148,7 @@ export async function deleteBookmark(accessToken: string, bookmarkId: string): P
   });
 }
 
-export interface QfReadingSession {
-  id: string;
-  chapterNumber: number;
-  verseNumber: number;
-  updatedAt: string;
-}
-
-export async function updateReadingSession(accessToken: string, chapterNumber: number, verseNumber: number): Promise<UserApiResponse<QfReadingSession>> {
+export async function updateReadingSession(accessToken: string, chapterNumber: number, verseNumber: number): Promise<UserApiResponse<QfSimpleReadingSession>> {
   return userApi('/v1/reading-sessions', {
     method: 'POST',
     accessToken,
@@ -150,7 +156,7 @@ export async function updateReadingSession(accessToken: string, chapterNumber: n
   });
 }
 
-export async function getReadingSessions(accessToken: string, first?: number, after?: string): Promise<UserApiResponse<QfReadingSession[]>> {
+export async function getReadingSessions(accessToken: string, first?: number, after?: string): Promise<UserApiResponse<QfSimpleReadingSession[]>> {
   let endpoint = '/v1/reading-sessions';
   const params: string[] = [];
   if (first) params.push(`first=${first}`);

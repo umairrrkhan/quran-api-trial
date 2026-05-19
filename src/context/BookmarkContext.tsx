@@ -81,6 +81,7 @@ export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }));
 
     setBookmarks(mapped.filter((b): b is Bookmark => !!b));
+    setError('');
     setLoading(false);
   }, [isAuthenticated, getAccessToken]);
 
@@ -92,10 +93,14 @@ export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
     const { surahId, verseNumber } = parseVerseKey(bookmark.verseKey);
     const res = await createBookmark(token, surahId, verseNumber);
-    if (!res.data) return;
+    if (res.error) {
+      setError(res.error);
+      return;
+    }
 
     const created = res.data?.data || res.data;
-    if (created?.id) bookmarkIdsRef.current.set(bookmark.verseKey, created.id);
+    const bookmarkId = created?.id;
+    if (bookmarkId) bookmarkIdsRef.current.set(bookmark.verseKey, bookmarkId);
 
     setBookmarks(prev => {
       if (prev.some((b) => b.verseKey === bookmark.verseKey)) return prev;
@@ -107,22 +112,22 @@ export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const token = await getAccessToken();
     if (!token) return;
 
-    const bookmarkId = bookmarkIdsRef.current.get(verseKey);
-    if (bookmarkId) {
-      await deleteBookmark(token, bookmarkId);
-      bookmarkIdsRef.current.delete(verseKey);
-      setBookmarks(prev => prev.filter(b => b.verseKey !== verseKey));
-      return;
+    let bookmarkId = bookmarkIdsRef.current.get(verseKey);
+    if (!bookmarkId) {
+      const latest = await getBookmarks(token);
+      if (!latest.data) return;
+      const match = latest.data.find((b: any) => toVerseKey(b) === verseKey);
+      if (!match?.id) return;
+      bookmarkId = match.id;
     }
 
-    const latest = await getBookmarks(token);
-    if (!latest.data) return;
-    const match = latest.data.find((b: any) => toVerseKey(b) === verseKey);
-    if (!match?.id) return;
-
-    await deleteBookmark(token, match.id);
+    const res = await deleteBookmark(token, bookmarkId);
+    if (res.error) {
+      setError(res.error);
+      return;
+    }
     bookmarkIdsRef.current.delete(verseKey);
-    setBookmarks(prev => prev.filter((b) => b.verseKey !== verseKey));
+    setBookmarks(prev => prev.filter(b => b.verseKey !== verseKey));
   }, [getAccessToken]);
 
   const updateNote = useCallback(async (verseKey: string, note: string) => {

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useAuth } from '../../context/AuthContext';
 import { getReadingSessions } from '../../services/qfUserApi';
 import { fetchChapters } from '../../services/quranApi';
-import type { QfReadingSession } from '../../services/qfUserApi';
+import type { QfSimpleReadingSession } from '../../services/qfUserApi';
 import type { Chapter } from '../../types/quran';
 import './ContinueReadingSection.css';
 
@@ -13,7 +13,7 @@ interface ContinueReadingSectionProps {
 
 const ContinueReadingSection: React.FC<ContinueReadingSectionProps> = ({ onContinue }) => {
   const { isAuthenticated, getAccessToken } = useAuth();
-  const [session, setSession] = useState<QfReadingSession | null>(null);
+  const [session, setSession] = useState<QfSimpleReadingSession | null>(null);
   const [chapter, setChapter] = useState<Chapter | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -37,7 +37,7 @@ const ContinueReadingSection: React.FC<ContinueReadingSectionProps> = ({ onConti
         setLoading(false);
         return;
       }
-      const latest = list[0] as QfReadingSession;
+      const latest = list[0] as QfSimpleReadingSession;
       setSession(latest);
 
       try {
