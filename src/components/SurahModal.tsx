@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getVerseExplanation } from '../services/deepseekApi';
 import { useBookmark } from '../context/BookmarkContext';
+import { useAuth } from '../context/AuthContext';
+import { updateReadingSession } from '../services/qfUserApi';
 import type { SurahContent } from '../types/quran';
 import './SurahModal.css';
 
@@ -103,6 +105,51 @@ const SurahModal: React.FC<SurahModalProps> = ({
 }) => {
   const chapter = surah.chapter;
   const { isBookmarked, addBookmark, removeBookmark, updateNote } = useBookmark();
+  const { isAuthenticated, getAccessToken } = useAuth();
+  const versesRef = useRef<HTMLDivElement>(null);
+  const sessionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastReportedRef = useRef<string>('');
+
+  const syncReadingSession = useCallback(async (chapterNumber: number, verseNumber: number) => {
+    const key = `${chapterNumber}:${verseNumber}`;
+    if (key === lastReportedRef.current) return;
+    lastReportedRef.current = key;
+    if (!isAuthenticated) return;
+    const token = await getAccessToken();
+    if (!token) return;
+    updateReadingSession(token, chapterNumber, verseNumber);
+  }, [isAuthenticated, getAccessToken]);
+
+  useEffect(() => {
+    syncReadingSession(chapter.id, 1);
+    const container = versesRef.current;
+    if (!container) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((e) => e.isIntersecting)
+          .map((e) => parseInt((e.target as HTMLElement).dataset.verseNumber || '0'))
+          .filter((vn) => vn > 0)
+          .sort((a, b) => b - a);
+        if (visible.length > 0) {
+          if (sessionTimerRef.current) clearTimeout(sessionTimerRef.current);
+          sessionTimerRef.current = setTimeout(() => {
+            syncReadingSession(chapter.id, visible[0]);
+          }, 2000);
+        }
+      },
+      { root: container, threshold: 0.5 }
+    );
+
+    const items = container.querySelectorAll('[data-verse-number]');
+    items.forEach((el) => observer.observe(el));
+
+    return () => {
+      observer.disconnect();
+      if (sessionTimerRef.current) clearTimeout(sessionTimerRef.current);
+    };
+  }, [chapter.id, syncReadingSession]);
 
   return (
     <motion.div
@@ -160,7 +207,7 @@ const SurahModal: React.FC<SurahModalProps> = ({
           </div>
         </div>
 
-        <div className="verses-container">
+        <div className="verses-container" ref={versesRef}>
           {surah.verses.map((verse) => {
             const translationText = verse.words
               .filter((w) => w.char_type_name !== 'end')
@@ -170,7 +217,7 @@ const SurahModal: React.FC<SurahModalProps> = ({
             const bookmarked = isBookmarked(verseKey);
 
             return (
-              <div key={verse.id} className={`verse-item ${bookmarked ? 'bookmarked' : ''}`}>
+              <div key={verse.id} className={`verse-item ${bookmarked ? 'bookmarked' : ''}`} data-verse-number={verse.verse_number}>
                 <div className="verse-header">
                   <span className="verse-number">
                     Verse {verse.verse_number}

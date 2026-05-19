@@ -101,7 +101,7 @@ export async function createBookmark(accessToken: string, surahId: number, verse
   return userApi('/auth/v1/bookmarks', {
     method: 'POST',
     accessToken,
-    body: { key: surahId, type: 'ayah', verseNumber, mushafId: 4 },
+    body: { key: `${surahId}:${verseNumber}`, type: 'ayah', verseNumber, mushafId: 4 },
   });
 }
 
@@ -110,4 +110,28 @@ export async function deleteBookmark(accessToken: string, bookmarkId: string): P
     method: 'DELETE',
     accessToken,
   });
+}
+
+export interface QfReadingSession {
+  id: string;
+  chapterNumber: number;
+  verseNumber: number;
+  updatedAt: string;
+}
+
+export async function updateReadingSession(accessToken: string, chapterNumber: number, verseNumber: number): Promise<UserApiResponse<QfReadingSession>> {
+  return userApi('/v1/reading-sessions', {
+    method: 'POST',
+    accessToken,
+    body: { chapterNumber, verseNumber },
+  });
+}
+
+export async function getReadingSessions(accessToken: string, first?: number, after?: string): Promise<UserApiResponse<QfReadingSession[]>> {
+  let endpoint = '/v1/reading-sessions';
+  const params: string[] = [];
+  if (first) params.push(`first=${first}`);
+  if (after) params.push(`after=${after}`);
+  if (params.length) endpoint += '?' + params.join('&');
+  return userApi(endpoint, { accessToken });
 }
