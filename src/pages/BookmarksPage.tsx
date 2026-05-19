@@ -189,11 +189,6 @@ const BookmarksPage: React.FC = () => {
                                   <div key={bm.verseKey} className="bm-verse">
                                     <div className="bm-verse-head">
                                       <span className="bm-verse-num">Verse {bm.verseNumber}</span>
-                                      <button className="bm-remove-btn" onClick={() => removeBookmark(bm.verseKey)} title="Remove">
-                                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                          <path d="M18 6L6 18M6 6l12 12" />
-                                        </svg>
-                                      </button>
                                     </div>
                                     <p className="bm-verse-arabic">{bm.arabicText}</p>
                                     <p className="bm-verse-translation">{bm.translation}</p>
