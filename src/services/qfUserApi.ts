@@ -143,7 +143,7 @@ export async function getCurrentStreakDays(accessToken: string): Promise<UserApi
 }
 
 export async function createBookmark(accessToken: string, surahId: number, verseNumber: number): Promise<UserApiResponse<any>> {
-  return userApi('/auth/v1/bookmarks', {
+  return userApi('/auth/v1/collections/__default__/bookmarks', {
     method: 'POST',
     accessToken,
     body: { key: surahId, type: 'ayah', verseNumber, mushafId: 4 },
@@ -151,7 +151,7 @@ export async function createBookmark(accessToken: string, surahId: number, verse
 }
 
 export async function deleteBookmark(accessToken: string, bookmarkId: string): Promise<UserApiResponse<any>> {
-  return userApi(`/auth/v1/bookmarks/${bookmarkId}`, {
+  return userApi(`/auth/v1/collections/__default__/bookmarks/${bookmarkId}`, {
     method: 'DELETE',
     accessToken,
   });
