@@ -62,7 +62,7 @@ const AUTH_BASE = 'https://prelive-oauth2.quran.foundation';
 const FUNCTIONS_BASE = 'https://us-central1-sample-firebase-ai-appj-9c9fa.cloudfunctions.net';
 
 export async function buildLoginUrl(): Promise<{ url: string; session: AuthSession }> {
-  const redirectUri = 'https://umair.sbs/callback';
+  const redirectUri = `${window.location.origin}/callback`;
   const { codeVerifier, codeChallenge } = await generatePkcePair();
   const state = randomString(16);
   const nonce = randomString(16);
