@@ -142,7 +142,7 @@ const SurahModal: React.FC<SurahModalProps> = ({
                 className={`mark-complete-btn ${isCompleted ? 'completed' : ''}`}
                 onClick={() => onMarkComplete(chapter.verses_count)}
               >
-                {isCompleted ? 'Completed' : 'Mark as Read'}
+                {isCompleted ? 'Completed ✓' : 'Mark as Read'}
               </button>
             )}
             <button className="close-modal" onClick={onClose}>

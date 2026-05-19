@@ -14,14 +14,20 @@ export function useReadingProgress() {
 
   const markSurahCompleted = useCallback(
     (surahId: number, versesCount?: number) => {
-      setRecords((prev) => ({
-        ...prev,
-        [surahId]: {
-          completedDate: new Date().toISOString(),
-          versesRead: versesCount || 0,
-          completed: true,
-        },
-      }));
+      setRecords((prev) => {
+        if (prev[surahId]?.completed) {
+          const { [surahId]: _, ...rest } = prev;
+          return rest;
+        }
+        return {
+          ...prev,
+          [surahId]: {
+            completedDate: new Date().toISOString(),
+            versesRead: versesCount || 0,
+            completed: true,
+          },
+        };
+      });
     },
     [setRecords]
   );
