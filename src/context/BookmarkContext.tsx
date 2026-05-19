@@ -114,16 +114,17 @@ export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     const token = await getAccessToken();
     if (!token) return;
 
-    let bookmarkId = bookmarkIdsRef.current.get(verseKey);
+    let bookmarkId: string | undefined = bookmarkIdsRef.current.get(verseKey);
     if (!bookmarkId) {
       const latest = await getBookmarks(token);
       if (!latest.data) return;
-      const match = latest.data.find((b: any) => toVerseKey(b) === verseKey);
+      const latestItems = Array.isArray(latest.data) ? latest.data : (Array.isArray((latest.data as any).data) ? (latest.data as any).data : []);
+      const match = latestItems.find((b: any) => toVerseKey(b) === verseKey);
       if (!match?.id) return;
       bookmarkId = match.id;
     }
 
-    const res = await deleteBookmark(token, bookmarkId);
+    const res = await deleteBookmark(token, bookmarkId!);
     if (res.error) {
       setError(res.error);
       return;
