@@ -1,4 +1,4 @@
-# QuranHub — Your AI-Powered Quran Reading Companion
+# AyyahFlow — Your AI-Powered Quran Reading Companion
 
 > **Quran Foundation Hackathon** — Full-stack Quran reading platform with OAuth2 SSO, cloud-synced bookmarks, streak tracking, and AI-powered verse explanations.
 
@@ -6,7 +6,7 @@
 
 ## Intro
 
-QuranHub is a modern web app that lets you **read all 114 surahs** with Arabic text + English translation, **bookmark verses** synced to your Quran Foundation account, **track reading streaks**, and get **AI-generated explanations** for any verse — all secured with **OAuth2 + OpenID Connect**.
+AyyahFlow is a modern web app that lets you **read all 114 surahs** with Arabic text + English translation, **bookmark verses** synced to your Quran Foundation account, **track reading streaks**, and get **AI-generated explanations** for any verse — all secured with **OAuth2 + OpenID Connect**.
 
 ---
 

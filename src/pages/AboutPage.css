@@ -151,3 +151,74 @@
   .connect-section h3 { font-size: 1.1rem; }
   .social-link-btn { padding: 12px 20px; font-size: 0.85rem; }
 }
+
+.api-section {
+  background: white;
+  border: 1px solid var(--border-glass);
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 20px;
+}
+
+.api-section h4 {
+  font-size: 1.05rem;
+  color: var(--gold-dark);
+  margin-bottom: 4px;
+}
+
+.api-section h4 + p {
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  margin-bottom: 12px;
+}
+
+.api-section .tech-list {
+  margin-bottom: 12px;
+}
+
+.api-impact {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  padding: 10px 14px;
+  background: #FFFBEB;
+  border-radius: 8px;
+  border-left: 3px solid var(--gold);
+}
+
+.reading-impact {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.impact-card {
+  background: white;
+  border: 1px solid var(--border-glass);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+}
+
+.impact-number {
+  display: block;
+  font-size: 1.8rem;
+  font-weight: 800;
+  background: var(--gradient-gold);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  margin-bottom: 6px;
+}
+
+.impact-label {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+}
+
+@media (max-width: 768px) {
+  .reading-impact { grid-template-columns: 1fr; }
+  .api-section { padding: 16px 18px; }
+}

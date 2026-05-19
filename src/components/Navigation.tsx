@@ -42,8 +42,8 @@ const Navigation: React.FC = () => {
           transition={{ duration: 0.5 }}
         >
           <Link to="/">
-            <span className="logo-gold">Quran</span>
-            <span className="logo-dark">Hub</span>
+            <span className="logo-gold">Ayyah</span>
+            <span className="logo-dark">Flow</span>
           </Link>
         </motion.div>
 

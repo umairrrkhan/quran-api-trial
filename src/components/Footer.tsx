@@ -151,7 +151,7 @@ const Footer: React.FC = () => {
             transition={{ delay: 0.3 }}
           >
             <p>
-              &copy; {new Date().getFullYear()} QuranHub. Built with{' '}
+              &copy; {new Date().getFullYear()} AyyahFlow. Built with{' '}
               <motion.span
                 className="footer-heart"
                 animate={{ scale: [1, 1.2, 1] }}
