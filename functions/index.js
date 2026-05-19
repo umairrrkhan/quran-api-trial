@@ -17,7 +17,7 @@ async function proxy(bodyMap) {
   return { ok: res.status === 200, status: res.status, data: json };
 }
 
-exports.exchange = functions.runWith({ timeoutSeconds: 120 }).https.onRequest(async (req, res) => {
+exports.exchange = functions.https.onRequest(async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') {
     res.set('Access-Control-Allow-Methods', 'POST');
