@@ -132,7 +132,14 @@ export async function getUserReadingSessions(accessToken?: string): Promise<User
 }
 
 export async function getStreaks(accessToken?: string): Promise<UserApiResponse<QfStreak[]>> {
-  return userApi('/v1/streaks?type=QURAN', { accessToken });
+  return userApi('/auth/v1/streaks?type=QURAN&sortOrder=desc&orderBy=days&first=20', { accessToken });
+}
+
+export async function getCurrentStreakDays(accessToken: string): Promise<UserApiResponse<{ days: number }>> {
+  return userApi('/auth/v1/streaks/current-streak-days?type=QURAN', {
+    method: 'GET',
+    accessToken,
+  });
 }
 
 export async function createBookmark(accessToken: string, surahId: number, verseNumber: number): Promise<UserApiResponse<any>> {
