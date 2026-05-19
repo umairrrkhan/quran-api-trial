@@ -1,90 +1,127 @@
-# QuranHub
+# QuranHub — Your AI-Powered Quran Reading Companion
 
-> Built for the **Quran Foundation Hackathon** — OAuth2, User APIs, AI-powered verse explanations, progress tracking, and cloud sync.
+> **Quran Foundation Hackathon** — Full-stack Quran reading platform with OAuth2 SSO, cloud-synced bookmarks, streak tracking, and AI-powered verse explanations.
 
-Browse all 114 surahs, read verses with English translations, get AI-powered explanations via DeepSeek, track reading progress with streaks and heatmaps, bookmark verses with personal notes, and sign in with Quran Foundation OAuth2 for cloud-synced bookmarks.
+---
+
+## 10-Second Pitch
+
+QuranHub is a modern web app that lets you **read all 114 surahs** with Arabic text + English translation, **bookmark verses** synced to your Quran Foundation account, **track reading streaks**, and get **AI-generated explanations** for any verse — all secured with **OAuth2 + OpenID Connect**.
+
+---
+
+## APIs Used
+
+### 1. Quran Foundation Content API (Public — No Auth Required)
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /api/v4/chapters` | Fetch all 114 surahs |
+| `GET /api/v4/verses/by_chapter/:id` | Fetch verses with words & translations |
+| `GET /api/v4/verses/by_key/:key` | Fetch a single verse by key |
+| `GET /api/v4/chapters/:id` | Fetch surah details |
+
+Used for: Browsing surahs, reading verses with Arabic text and English translations (translation 131).
+
+### 2. Quran Foundation User API (OAuth2 Protected)
+| Endpoint | Method | Scope | Purpose |
+|----------|--------|-------|---------|
+| `/auth/v1/bookmarks` | POST | `bookmark` | Save a verse bookmark |
+| `/auth/v1/bookmarks` | GET | `bookmark` | Fetch all user bookmarks |
+| `/auth/v1/streaks/current-streak-days` | GET | `streak` | Get current reading streak |
+| `/auth/v1/streaks` | GET | `streak` | Get streak history |
+
+Used for: Cloud-synced bookmarks (add/list) and reading streak tracking via the User API.
+
+### 3. OAuth2 / OpenID Connect (Authentication)
+| Component | Protocol | Purpose |
+|-----------|----------|---------|
+| Authorization | OAuth2 Authorization Code + PKCE | Secure login flow |
+| Identity | OpenID Connect (ID token) | Decode user profile (name, email, sub) |
+| Token Refresh | Refresh Token (offline_access) | Persistent sessions across page refreshes |
+| Scopes Requested | `openid offline_access bookmark streak` | Least-privilege access to required APIs |
+
+The OAuth flow is proxied through Firebase Cloud Functions to keep the client secret server-side (confidential client pattern).
+
+### 4. DeepSeek AI API (Verse Explanations)
+| Model | Purpose |
+|-------|---------|
+| `deepseek-v4-flash` | Verse context, thematic analysis, historical background |
+
+Used for: Generating detailed explanations for any verse with context, themes, and insights.
+
+---
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Browser (React SPA)                       │
+│  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌────────────┐ │
+│  │ Auth     │  │ Reader   │  │ Progress │  │ Bookmarks  │ │
+│  │ (OAuth2) │  │ (Surahs) │  │ (Streaks)│  │ (Cloud)    │ │
+│  └────┬─────┘  └────┬─────┘  └────┬─────┘  └─────┬──────┘ │
+│       │             │             │              │         │
+│       ▼             ▼             ▼              ▼         │
+│  ┌──────────────────────────────────────────────────────┐  │
+│  │              Firebase Cloud Functions                 │  │
+│  │  ┌─────────────┐    ┌─────────────────────────────┐  │  │
+│  │  │ /exchange   │    │ /refresh                    │  │  │
+│  │  │ (Token Proxy)│    │ (Token Refresher)           │  │  │
+│  │  └──────┬──────┘    └──────┬──────────────────────┘  │  │
+│  └─────────┼──────────────────┼─────────────────────────┘  │
+│            │                  │                             │
+└────────────┼──────────────────┼─────────────────────────────┘
+             │                  │
+             ▼                  ▼
+┌──────────────────────┐  ┌──────────────────────────┐
+│ Quran Foundation     │  │ Quran Foundation          │
+│ OAuth2 Provider      │  │ User API                  │
+│ (Hydra)              │  │ (Bookmarks, Streaks, etc.)│
+└──────────────────────┘  └──────────────────────────┘
+
+┌─────────────────────────────────────────────┐
+│  Direct Browser → API (No Proxy Required)    │
+│                                             │
+│  Quran Foundation Content API               │
+│  https://api.quran.com/api/v4/...           │
+│                                             │
+│  DeepSeek AI API                            │
+│  https://api.deepseek.com/...               │
+└─────────────────────────────────────────────┘
+```
+
+---
 
 ## Features
 
-- **114 Surahs** — Browse chapters with Arabic text + English translations
-- **AI Explanations** — DeepSeek-powered verse context, themes & insights
-- **Progress Tracking** — Mark surahs completed, streaks, daily goals, reading stats
-- **Completion Heatmap** — 365-day visual of reading history
-- **Bookmarks & Notes** — Save verses with personal reflections & AI explanations
-- **Emotion Search** — Find surahs based on how you feel
-- **Export** — Progress as CSV, TXT, or styled PDF
-- **OAuth2 Login** — Authorization Code + PKCE + OpenID Connect with Quran Foundation
-- **Cloud Sync** — User API proxy for bookmarks via Quran Foundation APIs
-- **Firebase Hosting + Functions** — Live at umair.sbs
+| Feature | Description | API |
+|---------|-------------|-----|
+| **Read 114 Surahs** | Arabic text + English translation with word-by-word breakdown | Content API |
+| **AI Explanations** | DeepSeek generates context, themes, and historical background | DeepSeek AI |
+| **Cloud Bookmarks** | Save verses to your Quran Foundation account, synced everywhere | User API + OAuth2 |
+| **Reading Streaks** | Track current streak via User API instead of local storage | User API (streaks) |
+| **Progress Tracking** | Mark surahs as completed, daily goals, completion heatmap | Local + User API |
+| **Emotion Search** | Find surahs based on how you feel | Client-side |
+| **Pagination** | Bookmarks load 10 at a time with cursor-based pagination | User API |
+| **Export** | Download progress as CSV, TXT, or styled PDF | Client-side |
+| **OAuth2 SSO** | Sign in with Quran Foundation account, PKCE-secured | OAuth2 + OIDC |
+
+---
 
 ## Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
-| Frontend | React 18, TypeScript, Framer Motion |
-| Auth | OAuth2 Authorization Code + PKCE, OpenID Connect |
-| Backend | Firebase Cloud Functions (Node.js 20) |
-| Hosting | Firebase Hosting + custom domain |
-| APIs | Quran Foundation Content API, Quran Foundation User API, DeepSeek AI |
+| **Frontend** | React 18, TypeScript, Framer Motion, React Router 7 |
+| **Auth** | OAuth2 Authorization Code + PKCE + OpenID Connect |
+| **Backend** | Firebase Cloud Functions (Node.js 20) — confidential client proxy |
+| **Hosting** | Firebase Hosting with custom domain |
+| **APIs** | Quran Foundation Content API, User API, DeepSeek AI |
+| **Styling** | Custom CSS with glassmorphism + gold accent theme |
 
-## Project Structure
+---
 
-```
-src/
-├── components/     # Navigation, Footer, SurahModal, sections
-├── pages/          # Home, Progress, Bookmarks, About, Profile, Callback
-├── context/        # AuthContext, ProgressContext, BookmarkContext
-├── services/       # quranApi.ts, deepseekApi.ts, qfOAuth.ts, qfUserApi.ts
-├── hooks/          # useReadingProgress, useBookmarks, useLocalStorage
-├── types/          # TypeScript interfaces
-└── styles/         # Global CSS
-functions/          # Firebase Cloud Functions — OAuth token proxy + User API proxy
-```
-
-## APIs
-
-| API | Endpoints | Purpose |
-|-----|-----------|---------|
-| Quran Foundation Content | `GET /chapters`, `GET /verses` | Chapters + verses + translations |
-| Quran Foundation User | `POST /auth/v1/bookmarks`, `GET /v1/streaks`, etc. | Bookmarks, collections, streaks |
-| DeepSeek AI | Chat completions | Verse explanations with context/themes |
-
-## Auth Flow
-
-### OAuth2 Authorization Code + PKCE
-
-```
-1. User clicks "Sign In"
-2. App generates PKCE code_challenge + state + nonce
-3. Redirects to Quran Foundation authorization endpoint
-4. User logs in at Quran Foundation
-5. Redirects back to /callback with authorization code
-6. Firebase Function exchanges code + client_secret for tokens
-7. Access token stored in sessionStorage
-8. User APIs called with x-auth-token + x-client-id headers
-```
-
-### Backend Architecture
-
-```
-Browser → POST /api/exchange → Firebase Function → Hydra OAuth server (with Basic auth)
-Browser → POST /api/refresh  → Firebase Function → Hydra OAuth server (with Basic auth)
-Browser → POST /api/user     → Firebase Function → Quran Foundation User API (with x-auth-token + x-client-id)
-```
-
-## User API Endpoints
-
-| Function | Method | Endpoint | Description |
-|----------|--------|----------|-------------|
-| `getBookmarks` | GET | `/auth/v1/bookmarks` | Fetch user bookmarks |
-| `createBookmark` | POST | `/auth/v1/bookmarks` | Save a new bookmark |
-| `deleteBookmark` | DELETE | `/auth/v1/bookmarks/{id}` | Remove a bookmark |
-| `getCollections` | GET | `/auth/v1/collections` | Fetch collections |
-| `getActivityDays` | GET | `/v1/activity-days` | Fetch reading activity |
-| `addActivityDay` | POST | `/v1/activity-days` | Log reading session |
-| `getStreaks` | GET | `/v1/streaks` | Fetch streak data |
-
-## Setup
+## Quick Start
 
 ```bash
 npm install
@@ -93,31 +130,26 @@ npm run build          # production build
 firebase deploy        # deploy hosting + functions
 ```
 
-## Environment Variables
-
-Set these in your local `.env` or Firebase project:
-
-```
-REACT_APP_QF_CLIENT_ID=your_client_id
-REACT_APP_QF_REDIRECT_URI=https://your-domain.com/callback
-```
-
-For Cloud Functions (Vercel/Firebase env):
-
-```
-QF_CLIENT_ID=your_client_id
-QF_CLIENT_SECRET=your_client_secret
-```
-
 ## Deployment
-
-Hosted on **Firebase** with custom domain **umair.sbs**.
 
 ```bash
 firebase deploy --only hosting     # frontend
-firebase deploy --only functions   # backend
+firebase deploy --only functions   # backend proxy
 ```
+
+**Live:** [https://sample-firebase-ai-appj-9c9fa.web.app](https://sample-firebase-ai-appj-9c9fa.web.app)
 
 ---
 
-*"The best of you are those who learn the Quran and teach it."*
+## Security
+
+- OAuth2 client secret kept server-side in Firebase Functions (confidential client pattern)
+- PKCE prevents authorization code interception
+- State parameter prevents CSRF attacks
+- Nonce validation for ID tokens
+- Tokens stored in localStorage with automatic refresh before expiry
+- All User API calls proxied through Firebase Functions — never expose tokens to third parties
+
+---
+
+*"The best of you are those who learn the Quran and teach it." — Prophet Muhammad (PBUH)*

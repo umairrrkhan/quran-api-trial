@@ -6,6 +6,7 @@ const SESSION_KEY = 'qf_auth_session';
 const TOKEN_KEY = 'qf_tokens';
 const USER_KEY = 'qf_user';
 const ISSUED_KEY = 'qf_tokens_issued_at';
+const AUTH_KEY = 'qf_authenticated';
 
 const storage = window.localStorage;
 
@@ -40,7 +41,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<QfUser | null>(() => {
     try {
       const raw = storage.getItem(USER_KEY);
-      return raw ? JSON.parse(raw) : null;
+      const stored = raw ? JSON.parse(raw) : null;
+      return stored || null;
     } catch { return null; }
   });
   const [tokens, setTokens] = useState<TokenSet | null>(() => {
@@ -49,10 +51,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
   });
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(() => {
+    return storage.getItem(AUTH_KEY) === 'true';
+  });
   const refreshTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const isAuthenticated = !!user;
+  const isAuthenticated = !!user && !!tokens;
 
   const clearAuth = useCallback(() => {
     setUser(null);
@@ -60,6 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     storage.removeItem(TOKEN_KEY);
     storage.removeItem(USER_KEY);
     storage.removeItem(ISSUED_KEY);
+    storage.removeItem(AUTH_KEY);
     if (refreshTimer.current) {
       clearTimeout(refreshTimer.current);
       refreshTimer.current = null;
@@ -153,7 +158,10 @@ export function exchangeAndStore(code: string, codeVerifier: string, redirectUri
     storage.removeItem(SESSION_KEY);
     if (tokens.idToken) {
       const user = decodeIdToken(tokens.idToken);
-      if (user) storage.setItem(USER_KEY, JSON.stringify(user));
+      if (user) {
+        storage.setItem(USER_KEY, JSON.stringify(user));
+        storage.setItem(AUTH_KEY, 'true');
+      }
       return user || null;
     }
     return null;
