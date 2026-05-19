@@ -153,7 +153,7 @@ export async function createBookmark(accessToken: string, surahId: number, verse
 }
 
 export async function deleteBookmark(accessToken: string, bookmarkId: string): Promise<UserApiResponse<any>> {
-  return userApi(`/auth/v1/bookmarks/${bookmarkId}`, {
+  return userApi(`/auth/v1/collections/__default__/bookmarks/${bookmarkId}`, {
     method: 'DELETE',
     accessToken,
   });
