@@ -102,7 +102,7 @@ const SurahModal: React.FC<SurahModalProps> = ({
   onMarkComplete,
 }) => {
   const chapter = surah.chapter;
-  const { isBookmarked, addBookmark, removeBookmark, updateNote } = useBookmark();
+  const { isBookmarked, addBookmark, updateNote } = useBookmark();
 
   return (
     <motion.div
@@ -178,10 +178,8 @@ const SurahModal: React.FC<SurahModalProps> = ({
                   <button
                     className={`verse-bookmark-btn ${bookmarked ? 'active' : ''}`}
                     onClick={() => {
-                      if (bookmarked) {
-                        removeBookmark(verseKey);
-                      } else {
-                        const arabicText = verse.words
+                      if (bookmarked) return;
+                      const arabicText = verse.words
                           .filter((w) => w.char_type_name === 'word')
                           .map((w) => w.text_uthmani || w.text)
                           .join(' ');
@@ -195,9 +193,8 @@ const SurahModal: React.FC<SurahModalProps> = ({
                           note: '',
                           createdAt: new Date().toISOString(),
                         });
-                      }
-                    }}
-                    title={bookmarked ? 'Remove bookmark' : 'Bookmark this verse'}
+                      }}
+                    title={'Save'}
                   >
                     <svg width="14" height="14" viewBox="0 0 24 24" fill={bookmarked ? 'currentColor' : 'none'} stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M19 21l-7-5-7 5V5a2 2 0 012-2h10a2 2 0 012 2v16z" />
