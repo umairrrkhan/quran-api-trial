@@ -75,6 +75,7 @@ export async function buildLoginUrl(): Promise<{ url: string; session: AuthSessi
   params.set('nonce', nonce);
   params.set('code_challenge', codeChallenge);
   params.set('code_challenge_method', 'S256');
+  params.set('prompt', 'consent');
 
   const url = `${AUTH_BASE}/oauth2/auth?${params.toString()}`;
   const session: AuthSession = { state, nonce, codeVerifier, redirectUri };
