@@ -66,6 +66,14 @@ export interface QfStreak {
   days: number;
 }
 
+export interface QfReadingSession {
+  id?: string;
+  date: string;
+  ranges: string[];
+  seconds?: number;
+  versesRead?: number;
+}
+
 export async function getBookmarks(accessToken?: string): Promise<UserApiResponse<QfBookmark[]>> {
   return userApi('/auth/v1/bookmarks?type=ayah&mushafId=4&first=50', { accessToken });
 }
@@ -91,6 +99,21 @@ export async function addActivityDay(accessToken: string, data: { ranges: string
     accessToken,
     body: { type: 'QURAN', ...data, mushafId: data.mushafId || 4 },
   });
+}
+
+export async function addOrUpdateUserReadingSession(
+  accessToken: string,
+  data: { ranges: string[]; seconds: number; date: string; mushafId?: number }
+): Promise<UserApiResponse<any>> {
+  return userApi('/auth/v1/reading-sessions', {
+    method: 'POST',
+    accessToken,
+    body: { type: 'QURAN', ...data, mushafId: data.mushafId || 4 },
+  });
+}
+
+export async function getUserReadingSessions(accessToken?: string): Promise<UserApiResponse<QfReadingSession[]>> {
+  return userApi('/auth/v1/reading-sessions?type=QURAN&mushafId=4&first=365', { accessToken });
 }
 
 export async function getStreaks(accessToken?: string): Promise<UserApiResponse<QfStreak[]>> {

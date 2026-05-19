@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useCallback } from 'react';
+import React, { createContext, useContext, useCallback, useEffect, useMemo, useState } from 'react';
 import { useReadingProgress } from '../hooks/useReadingProgress';
 import { useAuth } from './AuthContext';
-import { addActivityDay } from '../services/qfUserApi';
+import { addOrUpdateUserReadingSession, getUserReadingSessions } from '../services/qfUserApi';
 import type { DailyActivity, ReadingRecord } from '../types/quran';
 
 interface ProgressContextType {
@@ -31,6 +31,24 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const readingProgress = useReadingProgress();
   const { isAuthenticated, getAccessToken } = useAuth();
+  const [remoteActivity, setRemoteActivity] = useState<DailyActivity[] | null>(null);
+
+  useEffect(() => {
+    if (!isAuthenticated) {
+      setRemoteActivity(null);
+      return;
+    }
+    getAccessToken().then(async (token) => {
+      if (!token) return;
+      const res = await getUserReadingSessions(token);
+      if (!res.data) return;
+      const mapped = (res.data || []).map((s: any) => ({
+        date: s.date || s.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
+        count: s.versesRead || s.ranges?.length || 1,
+      }));
+      setRemoteActivity(mapped);
+    });
+  }, [isAuthenticated, getAccessToken]);
 
   const markSurahCompleted = useCallback(
     async (surahId: number, versesCount?: number) => {
@@ -42,7 +60,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({
 
       const count = versesCount || 0;
       const date = new Date().toISOString().split('T')[0];
-      await addActivityDay(token, {
+      await addOrUpdateUserReadingSession(token, {
         ranges: [`${surahId}:1-${surahId}:${count || 1}`],
         seconds: count * 30,
         date,
@@ -51,10 +69,15 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({
     [readingProgress, isAuthenticated, getAccessToken]
   );
 
-  const value: ProgressContextType = {
-    ...readingProgress,
-    markSurahCompleted,
-  };
+  const mergedRecentActivity = useMemo(() => {
+    if (!remoteActivity || remoteActivity.length === 0) return readingProgress.recentActivity;
+    const map = new Map<string, number>();
+    readingProgress.recentActivity.forEach((d) => map.set(d.date, d.count));
+    remoteActivity.forEach((d) => map.set(d.date, (map.get(d.date) || 0) + d.count));
+    return Array.from(map.entries()).map(([date, count]) => ({ date, count })).sort((a, b) => a.date.localeCompare(b.date));
+  }, [readingProgress.recentActivity, remoteActivity]);
+
+  const value: ProgressContextType = { ...readingProgress, recentActivity: mergedRecentActivity, markSurahCompleted };
 
   return (
     <ProgressContext.Provider value={value}>

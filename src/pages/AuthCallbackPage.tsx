@@ -27,7 +27,7 @@ const AuthCallbackPage: React.FC = () => {
 
     let session;
     try {
-      const raw = sessionStorage.getItem('qf_auth_session');
+      const raw = localStorage.getItem('qf_auth_session');
       session = raw ? JSON.parse(raw) : null;
     } catch { session = null; }
 

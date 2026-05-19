@@ -7,6 +7,8 @@ const TOKEN_KEY = 'qf_tokens';
 const USER_KEY = 'qf_user';
 const ISSUED_KEY = 'qf_tokens_issued_at';
 
+const storage = window.localStorage;
+
 interface AuthContextType {
   user: QfUser | null;
   isAuthenticated: boolean;
@@ -37,13 +39,13 @@ function decodeIdToken(token: string): QfUser | null {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<QfUser | null>(() => {
     try {
-      const raw = sessionStorage.getItem(USER_KEY);
+      const raw = storage.getItem(USER_KEY);
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
   });
   const [tokens, setTokens] = useState<TokenSet | null>(() => {
     try {
-      const raw = sessionStorage.getItem(TOKEN_KEY);
+      const raw = storage.getItem(TOKEN_KEY);
       return raw ? JSON.parse(raw) : null;
     } catch { return null; }
   });
@@ -55,9 +57,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearAuth = useCallback(() => {
     setUser(null);
     setTokens(null);
-    sessionStorage.removeItem(TOKEN_KEY);
-    sessionStorage.removeItem(USER_KEY);
-    sessionStorage.removeItem(ISSUED_KEY);
+    storage.removeItem(TOKEN_KEY);
+    storage.removeItem(USER_KEY);
+    storage.removeItem(ISSUED_KEY);
     if (refreshTimer.current) {
       clearTimeout(refreshTimer.current);
       refreshTimer.current = null;
@@ -76,14 +78,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return null;
     }
     setTokens(result);
-    sessionStorage.setItem(TOKEN_KEY, JSON.stringify(result));
-    sessionStorage.setItem(ISSUED_KEY, String(Date.now()));
+    storage.setItem(TOKEN_KEY, JSON.stringify(result));
+    storage.setItem(ISSUED_KEY, String(Date.now()));
     return result;
   }, [clearAuth]);
 
   const getAccessToken = useCallback(async (): Promise<string | null> => {
     if (!tokens) return null;
-    const issuedAt = sessionStorage.getItem(ISSUED_KEY);
+    const issuedAt = storage.getItem(ISSUED_KEY);
     if (issuedAt) {
       const elapsed = (Date.now() - parseInt(issuedAt, 10)) / 1000;
       if (elapsed < tokens.expiresIn - 60) {
@@ -99,14 +101,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const login = useCallback(() => {
     buildLoginUrl().then(({ url, session }) => {
-      sessionStorage.setItem(SESSION_KEY, JSON.stringify(session));
+      storage.setItem(SESSION_KEY, JSON.stringify(session));
       window.location.href = url;
     });
   }, []);
 
   useEffect(() => {
     if (tokens?.refreshToken) {
-      const issueTime = sessionStorage.getItem(ISSUED_KEY);
+      const issueTime = storage.getItem(ISSUED_KEY);
       if (issueTime) {
         const elapsed = (Date.now() - parseInt(issueTime, 10)) / 1000;
         if (elapsed >= tokens.expiresIn - 60) {
@@ -146,12 +148,12 @@ export const useAuth = (): AuthContextType => {
 export function exchangeAndStore(code: string, codeVerifier: string, redirectUri: string): Promise<QfUser | null> {
   return exchangeCodeForTokens(code, codeVerifier, redirectUri).then((tokens) => {
     if (!tokens) return null;
-    sessionStorage.setItem(TOKEN_KEY, JSON.stringify(tokens));
-    sessionStorage.setItem(ISSUED_KEY, String(Date.now()));
-    sessionStorage.removeItem(SESSION_KEY);
+    storage.setItem(TOKEN_KEY, JSON.stringify(tokens));
+    storage.setItem(ISSUED_KEY, String(Date.now()));
+    storage.removeItem(SESSION_KEY);
     if (tokens.idToken) {
       const user = decodeIdToken(tokens.idToken);
-      if (user) sessionStorage.setItem(USER_KEY, JSON.stringify(user));
+      if (user) storage.setItem(USER_KEY, JSON.stringify(user));
       return user || null;
     }
     return null;
@@ -162,14 +164,14 @@ export { getStoredSession, getStoredTokens };
 
 function getStoredSession(): AuthSession | null {
   try {
-    const raw = sessionStorage.getItem(SESSION_KEY);
+    const raw = storage.getItem(SESSION_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch { return null; }
 }
 
 function getStoredTokens(): TokenSet | null {
   try {
-    const raw = sessionStorage.getItem(TOKEN_KEY);
+    const raw = storage.getItem(TOKEN_KEY);
     return raw ? JSON.parse(raw) : null;
   } catch { return null; }
 }
