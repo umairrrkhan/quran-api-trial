@@ -137,7 +137,7 @@ firebase deploy --only hosting     # frontend
 firebase deploy --only functions   # backend proxy
 ```
 
-**Live:** [https://sample-firebase-ai-appj-9c9fa.web.app](https://sample-firebase-ai-appj-9c9fa.web.app)
+**Live:** [https://umair.sbs](https://umair.sbs)
 
 ---
 
