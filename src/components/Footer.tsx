@@ -39,8 +39,8 @@ const Footer: React.FC = () => {
               <div className="footer-logo-wrap">
                 <div className="footer-glow" />
                 <h3 className="footer-logo">
-                  <span className="logo-gold">Quran</span>
-                  <span className="logo-dark">Hub</span>
+                  <span className="logo-gold">Ayyah</span>
+                  <span className="logo-dark">Flow</span>
                 </h3>
               </div>
               <p className="footer-brand-desc">
