@@ -89,8 +89,10 @@ export interface QfSimpleReadingSession {
   updatedAt: string;
 }
 
-export async function getBookmarks(accessToken?: string): Promise<UserApiResponse<QfBookmark[]>> {
-  return userApi('/auth/v1/bookmarks?type=ayah&mushafId=4&first=10', { accessToken });
+export async function getBookmarks(accessToken?: string, after?: string): Promise<UserApiResponse<QfBookmark[]>> {
+  let endpoint = '/auth/v1/bookmarks?type=ayah&mushafId=4&first=10';
+  if (after) endpoint += `&after=${after}`;
+  return userApi(endpoint, { accessToken });
 }
 
 export async function getCollections(accessToken?: string): Promise<UserApiResponse<QfCollection[]>> {
@@ -143,7 +145,7 @@ export async function getCurrentStreakDays(accessToken: string): Promise<UserApi
 }
 
 export async function createBookmark(accessToken: string, surahId: number, verseNumber: number): Promise<UserApiResponse<any>> {
-  return userApi('/auth/v1/collections/__default__/bookmarks', {
+  return userApi('/auth/v1/bookmarks', {
     method: 'POST',
     accessToken,
     body: { key: surahId, type: 'ayah', verseNumber, mushafId: 4 },
@@ -151,7 +153,7 @@ export async function createBookmark(accessToken: string, surahId: number, verse
 }
 
 export async function deleteBookmark(accessToken: string, bookmarkId: string): Promise<UserApiResponse<any>> {
-  return userApi(`/auth/v1/collections/__default__/bookmarks/${bookmarkId}`, {
+  return userApi(`/auth/v1/bookmarks/${bookmarkId}`, {
     method: 'DELETE',
     accessToken,
   });

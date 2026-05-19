@@ -11,7 +11,7 @@ const fadeUp = {
 };
 
 const BookmarksPage: React.FC = () => {
-  const { bookmarks, loading, error, removeBookmark, updateNote, bookmarksCount } = useBookmark();
+  const { bookmarks, loading, loadingMore, error, hasMore, removeBookmark, updateNote, bookmarksCount, loadMore } = useBookmark();
   const [editingNote, setEditingNote] = useState<string | null>(null);
   const [noteText, setNoteText] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
@@ -261,6 +261,14 @@ const BookmarksPage: React.FC = () => {
                   })
                 )}
               </motion.div>
+
+              {hasMore && (
+                <div className="bm-load-more-wrap">
+                  <button className="bm-load-more" onClick={loadMore} disabled={loadingMore}>
+                    {loadingMore ? 'Loading...' : 'Load More'}
+                  </button>
+                </div>
+              )}
             </>
           )}
         </div>
