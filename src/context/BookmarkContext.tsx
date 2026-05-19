@@ -58,7 +58,9 @@ export const BookmarkProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       return;
     }
 
-    const mapped = await Promise.all(res.data.map(async (b: any): Promise<Bookmark | null> => {
+    const items = Array.isArray(res.data) ? res.data : (Array.isArray((res.data as any).data) ? (res.data as any).data : []);
+
+    const mapped = await Promise.all(items.map(async (b: any): Promise<Bookmark | null> => {
       const verseKey = toVerseKey(b);
       if (!verseKey) return null;
       const { surahId, verseNumber } = parseVerseKey(verseKey);

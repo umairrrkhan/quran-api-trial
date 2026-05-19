@@ -32,7 +32,7 @@ const ContinueReadingSection: React.FC<ContinueReadingSectionProps> = ({ onConti
         return;
       }
       const raw: any = res.data;
-      const list: any[] = Array.isArray(raw) ? raw : (raw?.data || []);
+      const list: any[] = Array.isArray(raw) ? raw : (Array.isArray(raw?.data) ? raw.data : []);
       if (list.length === 0) {
         setLoading(false);
         return;

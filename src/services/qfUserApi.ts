@@ -137,7 +137,7 @@ export async function createBookmark(accessToken: string, surahId: number, verse
   return userApi('/auth/v1/bookmarks', {
     method: 'POST',
     accessToken,
-    body: { key: `${surahId}:${verseNumber}`, type: 'ayah', verseNumber, mushafId: 4 },
+    body: { key: surahId, type: 'ayah', verseNumber, mushafId: 4 },
   });
 }
 

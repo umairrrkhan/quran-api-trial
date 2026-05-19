@@ -42,7 +42,8 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({
       if (!token) return;
       const res = await getUserReadingSessions(token);
       if (!res.data) return;
-      const mapped = (res.data || []).map((s: any) => ({
+      const sessions = Array.isArray(res.data) ? res.data : (Array.isArray((res.data as any).data) ? (res.data as any).data : []);
+      const mapped = sessions.map((s: any) => ({
         date: s.date || s.updatedAt?.split('T')[0] || new Date().toISOString().split('T')[0],
         count: s.versesRead || s.ranges?.length || 1,
       }));
