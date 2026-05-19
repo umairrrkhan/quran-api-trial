@@ -28,4 +28,12 @@ export async function fetchChapterDetails(chapterId: number): Promise<Chapter> {
   return data.chapter;
 }
 
+export async function fetchVerseByKey(verseKey: string): Promise<Verse | null> {
+  const response = await fetch(
+    `${BASE_URL}/verses/by_key/${verseKey}?language=en&words=true&word_fields=text_uthmani&translations=131`
+  );
+  if (!response.ok) return null;
+  const data = await response.json();
+  return data.verse || null;
+}
 
