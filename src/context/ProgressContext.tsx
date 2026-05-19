@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useCallback, useEffect, useState } from 'react';
 import { useReadingProgress } from '../hooks/useReadingProgress';
 import { useAuth } from './AuthContext';
-import { getStreaks, getCurrentStreakDays } from '../services/qfUserApi';
+import { getCurrentStreakDays } from '../services/qfUserApi';
 import type { DailyActivity, ReadingRecord } from '../types/quran';
 
 interface ProgressContextType {
@@ -32,36 +32,23 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({
   const readingProgress = useReadingProgress();
   const { isAuthenticated, getAccessToken } = useAuth();
   const [apiCurrentStreak, setApiCurrentStreak] = useState<number | null>(null);
-  const [apiLongestStreak, setApiLongestStreak] = useState<number | null>(null);
 
   useEffect(() => {
     if (!isAuthenticated) {
       setApiCurrentStreak(null);
-      setApiLongestStreak(null);
       return;
     }
     getAccessToken().then(async (token) => {
       if (!token) return;
-      const [currentRes, streaksRes] = await Promise.all([
-        getCurrentStreakDays(token),
-        getStreaks(token),
-      ]);
+      const currentRes = await getCurrentStreakDays(token);
       if (currentRes.data) {
-        const days = Array.isArray(currentRes.data) ? null : (currentRes.data as any).days;
+        const days = (currentRes.data as any).days;
         if (typeof days === 'number') setApiCurrentStreak(days);
-      }
-      if (streaksRes.data) {
-        const list = Array.isArray(streaksRes.data) ? streaksRes.data : (Array.isArray((streaksRes.data as any).data) ? (streaksRes.data as any).data : []);
-        if (list.length > 0) {
-          const maxDays = Math.max(...list.map((s: any) => s.days || 0));
-          if (maxDays > 0) setApiLongestStreak(maxDays);
-        }
       }
     });
   }, [isAuthenticated, getAccessToken]);
 
   const currentStreak = apiCurrentStreak !== null ? apiCurrentStreak : readingProgress.currentStreak;
-  const longestStreak = apiLongestStreak !== null ? apiLongestStreak : readingProgress.longestStreak;
 
   const markSurahCompleted = useCallback(
     async (surahId: number, versesCount?: number) => {
@@ -70,7 +57,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({
     [readingProgress]
   );
 
-  const value: ProgressContextType = { ...readingProgress, currentStreak, longestStreak, markSurahCompleted };
+  const value: ProgressContextType = { ...readingProgress, currentStreak, markSurahCompleted };
 
   return (
     <ProgressContext.Provider value={value}>

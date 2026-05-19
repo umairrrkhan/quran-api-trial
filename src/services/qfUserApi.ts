@@ -90,7 +90,7 @@ export interface QfSimpleReadingSession {
 }
 
 export async function getBookmarks(accessToken?: string): Promise<UserApiResponse<QfBookmark[]>> {
-  return userApi('/auth/v1/bookmarks?type=ayah&mushafId=4&first=20', { accessToken });
+  return userApi('/auth/v1/bookmarks?type=ayah&mushafId=4&first=10', { accessToken });
 }
 
 export async function getCollections(accessToken?: string): Promise<UserApiResponse<QfCollection[]>> {

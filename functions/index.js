@@ -17,7 +17,7 @@ async function proxy(bodyMap) {
   return { ok: res.status === 200, status: res.status, data: json };
 }
 
-exports.exchange = functions.https.onRequest(async (req, res) => {
+exports.exchange = functions.runWith({ timeoutSeconds: 120 }).https.onRequest(async (req, res) => {
   res.set('Access-Control-Allow-Origin', '*');
   if (req.method === 'OPTIONS') {
     res.set('Access-Control-Allow-Methods', 'POST');
@@ -33,7 +33,11 @@ exports.exchange = functions.https.onRequest(async (req, res) => {
       let b = body.body;
       if (typeof b === 'string' && b) { try { b = JSON.parse(b); } catch {} }
       if (b && body.method !== 'GET') { opts.headers['Content-Type'] = 'application/json'; opts.body = JSON.stringify(b); }
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 30000);
+      opts.signal = controller.signal;
       const apiRes = await fetch(`${API_BASE}${body.endpoint}`, opts);
+      clearTimeout(timeout);
       const json = await apiRes.json();
       res.status(apiRes.status).json(json);
       return;
